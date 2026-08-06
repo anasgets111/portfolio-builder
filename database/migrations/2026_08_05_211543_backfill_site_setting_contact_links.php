@@ -21,16 +21,16 @@ return new class extends Migration
 
         $socialLinks = $this->decodeSocialLinks($siteSetting->social_links);
 
-        if (filled($siteSetting->phone) && ! $this->hasPlatform($socialLinks, 'phone')) {
+        if (is_string($phone = $siteSetting->phone) && filled($phone) && ! $this->hasPlatform($socialLinks, 'phone')) {
             $socialLinks[] = [
                 'platform' => 'Phone',
                 'label' => 'Phone',
-                'url' => 'tel:'.$siteSetting->phone,
+                'url' => 'tel:'.$phone,
             ];
         }
 
-        if (filled($siteSetting->whatsapp_number) && ! $this->hasPlatform($socialLinks, 'whatsapp')) {
-            $phoneNumber = Str::of($siteSetting->whatsapp_number)
+        if (is_string($whatsAppNumber = $siteSetting->whatsapp_number) && filled($whatsAppNumber) && ! $this->hasPlatform($socialLinks, 'whatsapp')) {
+            $phoneNumber = Str::of($whatsAppNumber)
                 ->replaceMatches('/\D+/', '')
                 ->toString();
 

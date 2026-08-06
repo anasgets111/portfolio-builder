@@ -131,7 +131,7 @@ class RestorePortfolioBackup
         return array_keys($entryNames);
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<array-key, mixed> */
     private function readManifest(ZipArchive $zip): array
     {
         $json = $zip->getFromName(ExportPortfolioBackup::MANIFEST_PATH);
@@ -158,7 +158,7 @@ class RestorePortfolioBackup
     }
 
     /**
-     * @param  array<string, mixed>  $manifest
+     * @param  array<array-key, mixed>  $manifest
      * @return PortfolioManifest
      */
     private function validateManifest(array $manifest): array
