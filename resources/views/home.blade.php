@@ -109,7 +109,7 @@
 
                     @if (filled($siteSetting?->resume_file))
                         <a href="{{ route('cv.show') }}" target="_blank" rel="noopener noreferrer" data-analytics-event="cv_opened" data-analytics-target="navigation" class="flex size-10 shrink-0 items-center justify-center gap-2 bg-brand text-xs font-bold uppercase tracking-[0.08em] text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft sm:w-auto sm:px-3" aria-label="Open my resume">
-                            <x-heroicon-o-document-arrow-down class="size-4" aria-hidden="true" />
+                            <x-fas-file-pdf class="size-4" aria-hidden="true" />
                             <span class="sr-only sm:not-sr-only">My Resume</span>
                         </a>
                     @endif
@@ -182,7 +182,7 @@
 
                             <aside id="skills" class="border-t border-ink pt-6" aria-labelledby="skills-title" data-reveal>
                                 <h3 id="skills-title" class="mb-6 flex items-center gap-2 text-[1.375rem] font-bold">
-                                    <x-heroicon-o-code-bracket class="size-6 text-brand" aria-hidden="true" />
+                                    <x-fas-code class="size-6 text-brand" aria-hidden="true" />
                                     Skills
                                 </h3>
 
@@ -210,7 +210,7 @@
 
                                 <div class="mt-6 flex items-center gap-2 text-sm text-brand">
                                     <span>My links</span>
-                                    <x-heroicon-o-arrow-right class="size-4" aria-hidden="true" />
+                                    <x-fas-arrow-right class="size-4" aria-hidden="true" />
                                 </div>
                                 <x-social-links :links="$siteSetting?->social_links ?? []" class="mt-1" />
                             </aside>
@@ -276,13 +276,13 @@
 
                                             @if (filled($project->source_url))
                                                 <a href="{{ $project->source_url }}" target="_blank" rel="noopener noreferrer" data-analytics-event="project_link_clicked" data-analytics-target="project:{{ $project->id }}:source" class="shrink-0 text-ink-muted transition hover:text-brand" aria-label="View {{ $project->title }} source code">
-                                                    <x-heroicon-o-code-bracket class="size-6" aria-hidden="true" />
+                                                    <x-fab-github class="size-6" aria-hidden="true" />
                                                 </a>
                                             @endif
 
                                             @if (filled($project->live_url))
                                                 <a href="{{ $project->live_url }}" target="_blank" rel="noopener noreferrer" data-analytics-event="project_link_clicked" data-analytics-target="project:{{ $project->id }}:live" class="shrink-0 text-ink-muted transition hover:text-brand" aria-label="View the live {{ $project->title }} project">
-                                                    <x-heroicon-o-arrow-top-right-on-square class="size-6" aria-hidden="true" />
+                                                    <x-fas-arrow-up-right-from-square class="size-6" aria-hidden="true" />
                                                 </a>
                                             @endif
                                         </div>
@@ -302,7 +302,7 @@
                                     <dialog id="project-dialog-{{ $project->id }}" aria-labelledby="project-dialog-title-{{ $project->id }}" aria-describedby="project-dialog-description-{{ $project->id }}" class="project-dialog m-auto w-[min(64rem,calc(100%-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-xl bg-panel p-0 text-ink shadow-2xl">
                                         <div class="relative">
                                             <button type="button" data-dialog-close class="absolute right-3 top-3 z-10 flex size-11 items-center justify-center rounded-full bg-canvas/80 text-ink backdrop-blur transition hover:bg-brand hover:text-canvas" aria-label="Close {{ $project->title }} details">
-                                                <x-heroicon-o-x-mark class="size-6" aria-hidden="true" />
+                                                <x-fas-xmark class="size-6" aria-hidden="true" />
                                             </button>
 
                                             <x-responsive-image
@@ -353,13 +353,13 @@
                                                         <div class="mt-3 flex flex-wrap gap-4 text-sm text-brand">
                                                             @if (filled($project->source_url))
                                                                 <a href="{{ $project->source_url }}" target="_blank" rel="noopener noreferrer" data-analytics-event="project_link_clicked" data-analytics-target="project:{{ $project->id }}:source" class="inline-flex items-center gap-2 rounded underline-offset-4 hover:underline">
-                                                                    <x-heroicon-o-code-bracket class="size-5" aria-hidden="true" />
+                                                                    <x-fab-github class="size-5" aria-hidden="true" />
                                                                     Source code
                                                                 </a>
                                                             @endif
                                                             @if (filled($project->live_url))
                                                                 <a href="{{ $project->live_url }}" target="_blank" rel="noopener noreferrer" data-analytics-event="project_link_clicked" data-analytics-target="project:{{ $project->id }}:live" class="inline-flex items-center gap-2 rounded underline-offset-4 hover:underline">
-                                                                    <x-heroicon-o-arrow-top-right-on-square class="size-5" aria-hidden="true" />
+                                                                    <x-fas-arrow-up-right-from-square class="size-5" aria-hidden="true" />
                                                                     Live project
                                                                 </a>
                                                             @endif
@@ -445,7 +445,7 @@
 
                         @if (filled($siteSetting?->email) && ! $hasEmailSocialLink)
                             <a href="mailto:{{ $siteSetting->email }}" data-analytics-event="contact_clicked" data-analytics-target="email" class="mt-7 inline-flex min-h-14 items-center justify-center gap-2 bg-ink px-8 text-[1.375rem] font-medium text-canvas transition hover:bg-canvas hover:text-ink">
-                                <x-heroicon-o-envelope class="size-6" aria-hidden="true" />
+                                <x-fas-envelope class="size-6" aria-hidden="true" />
                                 Send Email
                             </a>
                         @endif
