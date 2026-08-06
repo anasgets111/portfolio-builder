@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Experience;
+use App\Models\Project;
+use App\Models\SiteSetting;
+use App\Models\Skill;
+use Illuminate\Contracts\View\View;
+
+class HomeController extends Controller
+{
+    /**
+     * Display the public portfolio.
+     */
+    public function __invoke(): View
+    {
+        return view('home', [
+            'siteSetting' => SiteSetting::current(),
+            'projects' => Project::query()
+                ->published()
+                ->ordered()
+                ->with('publishedExperiences')
+                ->get(),
+            'experiences' => Experience::query()
+                ->published()
+                ->ordered()
+                ->with('publishedProjects')
+                ->get(),
+            'skills' => Skill::query()->published()->ordered()->get(),
+        ]);
+    }
+}
