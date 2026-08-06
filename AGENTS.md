@@ -98,6 +98,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Create or update records with their Eloquent models (`SiteSetting`, `Project`, `Experience`, and `Skill`). Store media under the same public-disk paths used by Filament: `site/profile-images`, `site/seo`, `site/resumes`, and `projects`.
 - After a content write, verify the affected records with `database-query` and load the relevant public page or run the focused feature test. Do not use `migrate:fresh --seed` unless the user explicitly approves deleting all local CMS content.
 
+## Portfolio backups
+
+- The authenticated **Admin → Backups** page (`/admin/portfolio-backups`) exports a versioned ZIP containing the portfolio CMS records and referenced public-disk media.
+- Restore is replace-only for `SiteSetting`, `Project`, `Experience`, experience-project relationships, and `Skill`. It must never change users, analytics, application configuration, sessions, jobs, or unrelated files.
+- Keep the 100 MB archive limit, ZIP path and checksum validation, managed-media validation, generated restored media paths, and database transaction/rollback cleanup. Add focused round-trip and rejection coverage when changing this flow.
+- A fresh installation needs migrations and one administrator account before an administrator can upload the backup. Its web server request-body limit must be at least 128 MB for the 100 MB multipart upload.
+
 === php rules ===
 
 # PHP
