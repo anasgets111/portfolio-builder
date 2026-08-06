@@ -315,15 +315,7 @@ class RestorePortfolioBackup
      */
     private function manifestFields(array $row, array $fields): array
     {
-        $attributes = [];
-
-        foreach ($fields as $field) {
-            if (array_key_exists($field, $row)) {
-                $attributes[$field] = $row[$field];
-            }
-        }
-
-        return $attributes;
+        return array_intersect_key($row, array_flip($fields));
     }
 
     /**
