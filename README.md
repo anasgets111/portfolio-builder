@@ -1,6 +1,6 @@
 # Portfolio Builder
 
-A Laravel and Filament portfolio website with a CMS at `/admin`. It starts with neutral placeholder content so you can replace every visible detail with your own work.
+A Laravel and Filament portfolio website with a CMS at `/admin`. It starts with neutral placeholder content so you can replace every visible detail with your own work, then move that content to a fresh installation with a portable backup.
 
 ## What it does
 
@@ -47,6 +47,14 @@ It is intended as a reusable starting point: update content in the CMS and make 
 
    Visit the URL configured by `APP_URL` and append `/admin`. On the first visit, create the one administrator account; afterwards, `/admin` shows the normal sign-in screen. In this checkout, those URLs are `https://portofolio.test` and `https://portofolio.test/admin`.
 
+## Backup and restore
+
+Use **Admin → Backups** to download one ZIP archive containing the portfolio CMS content and every referenced profile image, project image, sharing image, and CV. Create a backup before replacing local content or starting a new installation.
+
+To populate a fresh installation, complete the setup above, create an administrator account, then sign in and choose **Restore backup** from **Admin → Backups**. The restore replaces the site settings, projects, experience-project relationships, skills, and referenced media with the archive contents.
+
+Administrator accounts, analytics, application configuration, and unrelated storage files are deliberately excluded. The restore archive is limited to 100 MB; configure the web server request-body limit to at least 128 MB to allow the multipart upload overhead.
+
 ## Default content
 
 The seeders create generic, editable examples:
@@ -55,14 +63,6 @@ The seeders create generic, editable examples:
 - One project, one experience, and three skills
 - Neutral profile and project SVG placeholders
 - No default CV; upload your PDF from the CMS
-
-To discard all local CMS content and restore these placeholders, run:
-
-```bash
-php artisan migrate:fresh --seed
-```
-
-This command deletes the local database, so do not run it against data you need to keep.
 
 ## CMS content checklist
 

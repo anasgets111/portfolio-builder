@@ -4,6 +4,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 
 | Applies to | Rule file |
 | --- | --- |
+| app/Actions/{ExportPortfolioBackup,RestorePortfolioBackup}.php | .ai/rules/actions.md |
 | bootstrap/app.php | .ai/rules/bootstrap.md |
 | **/* | .ai/rules/general.md |
 | database/seeders/** | .ai/rules/seeders.md |
