@@ -24,6 +24,8 @@
         : null;
 
     $hasScrollingSkills = $skills->count() > 14;
+    $hasEmailSocialLink = collect($siteSetting?->social_links ?? [])
+        ->contains(fn (array $socialLink): bool => \Illuminate\Support\Str::lower($socialLink['platform'] ?? '') === 'email');
 @endphp
 
 <!DOCTYPE html>
@@ -93,7 +95,7 @@
                         {{ $logoInitials }}
                     </a>
 
-                    @foreach ([['about', 'About'], ['projects', 'Projects'], ['experience', 'Exp.'], ['contact', 'Contact']] as [$sectionId, $label])
+                    @foreach ([['about', 'About'], ['projects', 'Projects'], ['experience', 'Experience'], ['contact', 'Contact']] as [$sectionId, $label])
                         <a
                             href="#{{ $sectionId }}"
                             data-nav-link
@@ -106,9 +108,9 @@
                     @endforeach
 
                     @if (filled($siteSetting?->resume_file))
-                        <a href="{{ route('cv.show') }}" target="_blank" rel="noopener noreferrer" data-analytics-event="cv_opened" data-analytics-target="navigation" class="flex size-10 shrink-0 items-center justify-center gap-2 bg-brand text-xs font-bold uppercase tracking-[0.08em] text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft sm:w-auto sm:px-3" aria-label="Open my CV">
+                        <a href="{{ route('cv.show') }}" target="_blank" rel="noopener noreferrer" data-analytics-event="cv_opened" data-analytics-target="navigation" class="flex size-10 shrink-0 items-center justify-center gap-2 bg-brand text-xs font-bold uppercase tracking-[0.08em] text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft sm:w-auto sm:px-3" aria-label="Open my resume">
                             <x-heroicon-o-document-arrow-down class="size-4" aria-hidden="true" />
-                            <span class="sr-only sm:not-sr-only">CV</span>
+                            <span class="sr-only sm:not-sr-only">My Resume</span>
                         </a>
                     @endif
                 </nav>
@@ -441,7 +443,7 @@
                             {!! str($siteSetting?->contact_content ?? '')->sanitizeHtml() !!}
                         </div>
 
-                        @if (filled($siteSetting?->email))
+                        @if (filled($siteSetting?->email) && ! $hasEmailSocialLink)
                             <a href="mailto:{{ $siteSetting->email }}" data-analytics-event="contact_clicked" data-analytics-target="email" class="mt-7 inline-flex min-h-14 items-center justify-center gap-2 bg-ink px-8 text-[1.375rem] font-medium text-canvas transition hover:bg-canvas hover:text-ink">
                                 <x-heroicon-o-envelope class="size-6" aria-hidden="true" />
                                 Send Email

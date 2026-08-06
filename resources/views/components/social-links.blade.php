@@ -9,6 +9,7 @@
             $url = $socialLink['url'] ?? null;
             $label = $socialLink['label'] ?? $socialLink['platform'] ?? 'Social link';
             $platform = \Illuminate\Support\Str::lower($socialLink['platform'] ?? 'link');
+            $displayLabel = $showLabels ? ($socialLink['platform'] ?? $label) : $label;
             $isExternal = filled($url) && \Illuminate\Support\Str::startsWith($url, ['http://', 'https://']);
         @endphp
 
@@ -46,7 +47,7 @@
                         <x-heroicon-o-link class="size-5" aria-hidden="true" />
                 @endswitch
 
-                <span @class(['text-sm font-medium', 'sr-only' => ! $showLabels])>{{ $label }}</span>
+                <span @class(['text-sm font-medium', 'sr-only' => ! $showLabels])>{{ $displayLabel }}</span>
             </a>
         @endif
     @endforeach
