@@ -93,3 +93,7 @@ Do not query the database from Blade. Keep filtering and ordering in the control
 ```bash
 php artisan test --compact tests/Feature
 ```
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE).

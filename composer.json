@@ -1,10 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/blank-livewire-starter-kit",
+    "name": "portfolio-builder/portfolio-builder",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
-    "keywords": ["laravel", "framework"],
-    "license": "MIT",
+    "description": "A reusable Laravel and Filament portfolio website with a CMS.",
+    "keywords": ["laravel", "filament", "livewire", "portfolio", "cms"],
+    "homepage": "https://github.com/anasgets111/portfolio-builder",
+    "license": "GPL-3.0-only",
+    "authors": [
+        {
+            "name": "Anas Khalifa",
+            "email": "anasgets111@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/anasgets111/portfolio-builder/issues",
+        "source": "https://github.com/anasgets111/portfolio-builder"
+    },
     "require": {
         "php": "^8.3",
         "filament/filament": "^5.7",
