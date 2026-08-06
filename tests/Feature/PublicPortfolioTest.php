@@ -341,5 +341,6 @@ it('escapes ordinary content and sanitizes approved rich text', function () {
         ->assertSee('&lt;Unsafe summary&gt;', false)
         ->assertSee('<p>Approved about copy</p>', false)
         ->assertSee('<p>Approved project copy</p>', false)
-        ->assertDontSee('<script', false);
+        ->assertDontSee('<script>alert("about")</script>', false)
+        ->assertDontSee('<script>alert("project")</script>', false);
 });

@@ -16,6 +16,8 @@
             <a
                 href="{{ $url }}"
                 @if ($isExternal) target="_blank" rel="noopener noreferrer" @endif
+                data-analytics-event="social_clicked"
+                data-analytics-target="{{ $platform }}"
                 class="group inline-flex min-h-10 items-center gap-2 rounded-md px-2 text-ink-muted transition hover:text-brand focus-visible:text-brand"
                 aria-label="{{ $label }}"
             >
