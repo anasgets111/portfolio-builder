@@ -24,27 +24,27 @@
             >
                 @switch($platform)
                     @case('linkedin')
-                        <x-heroicon-o-briefcase class="size-5" aria-hidden="true" />
+                        <x-fab-linkedin class="size-5" aria-hidden="true" />
                         @break
 
                     @case('github')
-                        <x-heroicon-o-code-bracket class="size-5" aria-hidden="true" />
+                        <x-fab-github class="size-5" aria-hidden="true" />
                         @break
 
                     @case('phone')
-                        <x-heroicon-o-device-phone-mobile class="size-5" aria-hidden="true" />
+                        <x-fas-phone class="size-5" aria-hidden="true" />
                         @break
 
                     @case('whatsapp')
-                        <x-heroicon-o-chat-bubble-left-right class="size-5" aria-hidden="true" />
+                        <x-fab-whatsapp class="size-5" aria-hidden="true" />
                         @break
 
                     @case('email')
-                        <x-heroicon-o-envelope class="size-5" aria-hidden="true" />
+                        <x-fas-envelope class="size-5" aria-hidden="true" />
                         @break
 
                     @default
-                        <x-heroicon-o-link class="size-5" aria-hidden="true" />
+                        <x-fas-link class="size-5" aria-hidden="true" />
                 @endswitch
 
                 <span @class(['text-sm font-medium', 'sr-only' => ! $showLabels])>{{ $displayLabel }}</span>
