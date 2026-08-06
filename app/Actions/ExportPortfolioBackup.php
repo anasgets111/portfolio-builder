@@ -168,6 +168,10 @@ class ExportPortfolioBackup
 
             $contents = $disk->get($path);
 
+            if (! is_string($contents)) {
+                throw new RuntimeException("Referenced portfolio media could not be read: {$path}");
+            }
+
             if (! $zip->addFromString('media/'.$path, $contents)) {
                 throw new RuntimeException("Portfolio media could not be archived: {$path}");
             }
