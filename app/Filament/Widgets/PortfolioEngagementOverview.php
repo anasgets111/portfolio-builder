@@ -20,16 +20,17 @@ class PortfolioEngagementOverview extends StatsOverviewWidget
             ->whereIn('name', ['cv_opened', 'contact_clicked', 'project_opened', 'social_clicked'])
             ->selectRaw('name, count(*) as interaction_count')
             ->groupBy('name')
-            ->pluck('interaction_count', 'name');
+            ->pluck('interaction_count', 'name')
+            ->map(fn (mixed $count): int => is_numeric($count) ? (int) $count : 0);
 
         return [
-            Stat::make('CV opens', (int) $counts->get('cv_opened', 0))
+            Stat::make('CV opens', $counts->get('cv_opened', 0))
                 ->description('Last 30 days'),
-            Stat::make('Contact clicks', (int) $counts->get('contact_clicked', 0))
+            Stat::make('Contact clicks', $counts->get('contact_clicked', 0))
                 ->description('Last 30 days'),
-            Stat::make('Project opens', (int) $counts->get('project_opened', 0))
+            Stat::make('Project opens', $counts->get('project_opened', 0))
                 ->description('Last 30 days'),
-            Stat::make('Social clicks', (int) $counts->get('social_clicked', 0))
+            Stat::make('Social clicks', $counts->get('social_clicked', 0))
                 ->description('Last 30 days'),
         ];
     }
