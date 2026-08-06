@@ -319,8 +319,13 @@ it('renders the configured resume and social links', function () {
         ->assertSuccessful()
         ->assertSee('href="'.route('cv.show').'"', false)
         ->assertDontSee('storage/site/resumes/portfolio.pdf', false)
+        ->assertSee('My Resume')
+        ->assertSee('Experience')
         ->assertSee('href="https://github.com/example"', false)
         ->assertSee('href="mailto:hello@example.com"', false)
+        ->assertSee('<span class="text-sm font-medium">GitHub</span>', false)
+        ->assertSee('<span class="text-sm font-medium">Email</span>', false)
+        ->assertDontSee('Send Email')
         ->assertSee('GitHub profile')
         ->assertSee('Email me');
 });
