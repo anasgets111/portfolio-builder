@@ -48,6 +48,7 @@ function createPortfolioBackupFixture(): array
     $project = Project::factory()->published()->create([
         'title' => 'Portable Project',
         'image' => 'projects/portfolio.jpg',
+        'source_url' => 'https://github.com/example/portable-project',
         'sort_order' => 10,
     ]);
     $experience = Experience::factory()->published()->create([
@@ -125,6 +126,7 @@ it('restores a backup into fresh portfolio records and media paths', function ()
         ->and($siteSetting?->profile_image)->not->toBe('site/profile-images/profile.jpg')
         ->and($siteSetting?->resume_file)->not->toBe('site/resumes/resume.pdf')
         ->and($project->title)->toBe('Portable Project')
+        ->and($project->source_url)->toBe('https://github.com/example/portable-project')
         ->and($project->image)->not->toBe('projects/portfolio.jpg')
         ->and($experience->company)->toBe('Portable Company')
         ->and($experience->projects()->sole()->is($project))->toBeTrue()
