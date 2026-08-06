@@ -72,7 +72,7 @@ return new class extends Migration
             ]);
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<array<array-key, mixed>> */
     private function decodeSocialLinks(mixed $socialLinks): array
     {
         if (! is_string($socialLinks)) {
@@ -81,24 +81,36 @@ return new class extends Migration
 
         $decodedSocialLinks = json_decode($socialLinks, true);
 
-        return is_array($decodedSocialLinks) ? array_values($decodedSocialLinks) : [];
+        if (! is_array($decodedSocialLinks)) {
+            return [];
+        }
+
+        $links = [];
+
+        foreach ($decodedSocialLinks as $decodedSocialLink) {
+            if (is_array($decodedSocialLink)) {
+                $links[] = $decodedSocialLink;
+            }
+        }
+
+        return $links;
     }
 
-    /** @param list<array<string, mixed>> $socialLinks */
+    /** @param list<array<array-key, mixed>> $socialLinks */
     private function hasPlatform(array $socialLinks, string $platform): bool
     {
         return $this->findPlatformUrl($socialLinks, $platform) !== '';
     }
 
-    /** @param list<array<string, mixed>> $socialLinks */
+    /** @param list<array<array-key, mixed>> $socialLinks */
     private function findPlatformUrl(array $socialLinks, string $platform): string
     {
         foreach ($socialLinks as $socialLink) {
-            if (
-                Str::lower((string) ($socialLink['platform'] ?? '')) === $platform
-                && is_string($socialLink['url'] ?? null)
-            ) {
-                return $socialLink['url'];
+            $platformName = $socialLink['platform'] ?? null;
+            $url = $socialLink['url'] ?? null;
+
+            if (is_string($platformName) && Str::lower($platformName) === $platform && is_string($url)) {
+                return $url;
             }
         }
 

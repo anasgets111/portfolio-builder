@@ -15,6 +15,15 @@ use RuntimeException;
 use Throwable;
 use ZipArchive;
 
+/**
+ * @phpstan-type PortfolioManifest array{
+ *     site_setting: array<string, mixed>,
+ *     projects: list<array{key: string, image: string, attributes: array<string, mixed>}>,
+ *     experiences: list<array{project_keys: list<string>, attributes: array<string, mixed>}>,
+ *     skills: list<array<string, mixed>>,
+ *     media: list<array{path: string, sha256: string, bytes: int}>,
+ * }
+ */
 class RestorePortfolioBackup
 {
     public const int MAX_ARCHIVE_KILOBYTES = 102_400;
@@ -28,6 +37,12 @@ class RestorePortfolioBackup
     private const array BUILT_IN_PLACEHOLDERS = [
         'projects/project-placeholder.svg',
         'site/profile-images/profile-placeholder.svg',
+    ];
+
+    private const array SITE_SETTING_MEDIA_FIELDS = [
+        'profile_image',
+        'resume_file',
+        'og_image',
     ];
 
     public function handle(string $archivePath): void
@@ -144,7 +159,7 @@ class RestorePortfolioBackup
 
     /**
      * @param  array<string, mixed>  $manifest
-     * @return array<string, mixed>
+     * @return PortfolioManifest
      */
     private function validateManifest(array $manifest): array
     {
@@ -214,26 +229,125 @@ class RestorePortfolioBackup
             'media.*.bytes' => ['required', 'integer', 'min:1'],
         ])->validate();
 
-        $projectKeys = array_column($validated['projects'], 'key');
+        $siteSetting = $this->manifestFields(
+            Arr::array($validated, 'site_setting'),
+            ExportPortfolioBackup::SITE_SETTING_FIELDS,
+        );
+        $projects = [];
+        $experiences = [];
+        $skills = [];
+        $media = [];
 
-        foreach ($validated['experiences'] as $experience) {
+        foreach ($this->manifestRows($validated['projects'] ?? null, 'projects') as $project) {
+            $projects[] = [
+                'key' => Arr::string($project, 'key'),
+                'image' => Arr::string($project, 'image'),
+                'attributes' => $this->manifestFields($project, ExportPortfolioBackup::PROJECT_FIELDS),
+            ];
+        }
+
+        foreach ($this->manifestRows($validated['experiences'] ?? null, 'experiences') as $experience) {
+            $experiences[] = [
+                'project_keys' => $this->manifestStrings($experience, 'project_keys'),
+                'attributes' => $this->manifestFields($experience, ExportPortfolioBackup::EXPERIENCE_FIELDS),
+            ];
+        }
+
+        foreach ($this->manifestRows($validated['skills'] ?? null, 'skills') as $skill) {
+            $skills[] = $this->manifestFields($skill, ExportPortfolioBackup::SKILL_FIELDS);
+        }
+
+        foreach ($this->manifestRows($validated['media'] ?? null, 'media') as $entry) {
+            $media[] = [
+                'path' => Arr::string($entry, 'path'),
+                'sha256' => Arr::string($entry, 'sha256'),
+                'bytes' => Arr::integer($entry, 'bytes'),
+            ];
+        }
+
+        $projectKeys = array_column($projects, 'key');
+
+        foreach ($experiences as $experience) {
             if (array_diff($experience['project_keys'], $projectKeys) !== []) {
                 throw new RuntimeException('The portfolio backup contains an unknown project relationship.');
             }
         }
 
-        foreach ($validated['site_setting']['social_links'] ?? [] as $socialLink) {
-            if (! $this->isSafeSocialLink($socialLink['url'])) {
+        foreach ($this->manifestRows($siteSetting['social_links'] ?? [], 'social_links') as $socialLink) {
+            if (! $this->isSafeSocialLink(Arr::string($socialLink, 'url'))) {
                 throw new RuntimeException('The portfolio backup contains an unsafe social link.');
             }
         }
 
-        return $validated;
+        return [
+            'site_setting' => $siteSetting,
+            'projects' => $projects,
+            'experiences' => $experiences,
+            'skills' => $skills,
+            'media' => $media,
+        ];
+    }
+
+    /** @return list<array<array-key, mixed>> */
+    private function manifestRows(mixed $rows, string $field): array
+    {
+        if (! is_array($rows)) {
+            throw new RuntimeException("The portfolio backup manifest has an invalid \"{$field}\" list.");
+        }
+
+        $entries = [];
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                throw new RuntimeException("The portfolio backup manifest has an invalid \"{$field}\" entry.");
+            }
+
+            $entries[] = $row;
+        }
+
+        return $entries;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $row
+     * @param  list<string>  $fields
+     * @return array<string, mixed>
+     */
+    private function manifestFields(array $row, array $fields): array
+    {
+        $attributes = [];
+
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $row)) {
+                $attributes[$field] = $row[$field];
+            }
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $row
+     * @return list<string>
+     */
+    private function manifestStrings(array $row, string $field): array
+    {
+        $strings = [];
+
+        foreach (Arr::array($row, $field) as $value) {
+            if (! is_string($value)) {
+                throw new RuntimeException("The portfolio backup manifest has an invalid \"{$field}\" value.");
+            }
+
+            $strings[] = $value;
+        }
+
+        return $strings;
     }
 
     /**
      * @param  array<int, string>  $entryNames
-     * @param  array<string, mixed>  $manifest
+     * @param  PortfolioManifest  $manifest
      * @return array<string, string>
      */
     private function validateMedia(ZipArchive $zip, array $entryNames, array $manifest): array
@@ -244,12 +358,15 @@ class RestorePortfolioBackup
             $declaredMedia[$metadata['path']] = $metadata;
         }
 
-        $referencedPaths = array_values(array_unique(array_filter([
-            $manifest['site_setting']['profile_image'] ?? null,
-            $manifest['site_setting']['resume_file'] ?? null,
-            $manifest['site_setting']['og_image'] ?? null,
-            ...array_column($manifest['projects'], 'image'),
-        ], fn (mixed $path): bool => is_string($path) && $path !== '')));
+        $referencedPaths = array_column($manifest['projects'], 'image');
+
+        foreach (self::SITE_SETTING_MEDIA_FIELDS as $field) {
+            $path = $manifest['site_setting'][$field] ?? null;
+
+            if (is_string($path) && $path !== '') {
+                $referencedPaths[] = $path;
+            }
+        }
 
         if (array_diff($referencedPaths, array_keys($declaredMedia)) !== []) {
             throw new RuntimeException('The portfolio backup is missing referenced media metadata.');
@@ -341,7 +458,7 @@ class RestorePortfolioBackup
     }
 
     /**
-     * @param  array<string, mixed>  $manifest
+     * @param  PortfolioManifest  $manifest
      * @param  array<string, string>  $mediaPathMap
      */
     private function replacePortfolio(array $manifest, array $mediaPathMap): void
@@ -354,28 +471,28 @@ class RestorePortfolioBackup
             $projectIds = [];
 
             foreach ($manifest['projects'] as $projectData) {
-                $key = $projectData['key'];
-                $projectData['image'] = $mediaPathMap[$projectData['image']];
-                $project = Project::query()->create(Arr::only($projectData, ExportPortfolioBackup::PROJECT_FIELDS));
-                $projectIds[$key] = $project->id;
+                $attributes = $projectData['attributes'];
+                $attributes['image'] = $mediaPathMap[$projectData['image']];
+                $projectIds[$projectData['key']] = Project::query()->create($attributes)->id;
             }
 
             foreach ($manifest['experiences'] as $experienceData) {
-                $projectKeys = $experienceData['project_keys'];
-                $experience = Experience::query()->create(Arr::only($experienceData, ExportPortfolioBackup::EXPERIENCE_FIELDS));
-                $experience->projects()->sync(array_map(
-                    fn (string $projectKey): int => $projectIds[$projectKey],
-                    $projectKeys,
-                ));
+                Experience::query()
+                    ->create($experienceData['attributes'])
+                    ->projects()
+                    ->sync(array_map(
+                        fn (string $projectKey): int => $projectIds[$projectKey],
+                        $experienceData['project_keys'],
+                    ));
             }
 
             foreach ($manifest['skills'] as $skillData) {
-                Skill::query()->create(Arr::only($skillData, ExportPortfolioBackup::SKILL_FIELDS));
+                Skill::query()->create($skillData);
             }
 
-            $siteSettingData = Arr::only($manifest['site_setting'], ExportPortfolioBackup::SITE_SETTING_FIELDS);
+            $siteSettingData = $manifest['site_setting'];
 
-            foreach (['profile_image', 'resume_file', 'og_image'] as $mediaField) {
+            foreach (self::SITE_SETTING_MEDIA_FIELDS as $mediaField) {
                 $originalPath = $siteSettingData[$mediaField] ?? null;
 
                 if (is_string($originalPath) && $originalPath !== '') {

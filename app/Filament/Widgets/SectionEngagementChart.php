@@ -34,10 +34,16 @@ class SectionEngagementChart extends ChartWidget
         return [
             'datasets' => [[
                 'label' => 'Average seconds',
-                'data' => $sections->pluck('average_seconds')->map(fn (mixed $value): float => (float) $value)->all(),
+                'data' => $sections
+                    ->pluck('average_seconds')
+                    ->map(fn (mixed $value): float => is_numeric($value) ? (float) $value : 0.0)
+                    ->all(),
                 'backgroundColor' => '#f43f5e',
             ]],
-            'labels' => $sections->pluck('target')->map(fn (mixed $target): string => str((string) $target)->headline()->toString())->all(),
+            'labels' => $sections
+                ->pluck('target')
+                ->map(fn (mixed $target): string => is_string($target) ? str($target)->headline()->toString() : '')
+                ->all(),
         ];
     }
 

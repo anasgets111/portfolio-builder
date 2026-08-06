@@ -35,19 +35,23 @@ class PortfolioInteractionsChart extends ChartWidget
 
         $projectIds = $interactions
             ->pluck('target')
-            ->map(fn (mixed $target): ?int => $this->projectId((string) $target))
+            ->map(fn (mixed $target): ?int => is_string($target) ? $this->projectId($target) : null)
             ->filter()
             ->unique()
             ->values();
 
         $projects = Project::query()
             ->whereKey($projectIds)
-            ->pluck('title', 'id');
+            ->pluck('title', 'id')
+            ->map(fn (mixed $title): string => is_string($title) ? $title : '');
 
         return [
             'datasets' => [[
                 'label' => 'Interactions',
-                'data' => $interactions->pluck('interaction_count')->map(fn (mixed $value): int => (int) $value)->all(),
+                'data' => $interactions
+                    ->pluck('interaction_count')
+                    ->map(fn (mixed $value): int => is_numeric($value) ? (int) $value : 0)
+                    ->all(),
                 'backgroundColor' => '#f43f5e',
             ]],
             'labels' => $interactions
@@ -68,7 +72,7 @@ class PortfolioInteractionsChart extends ChartWidget
             : null;
     }
 
-    /** @param Collection<int, string> $projects */
+    /** @param Collection<array-key, string> $projects */
     private function interactionLabel(AnalyticsEvent $event, Collection $projects): string
     {
         $target = $event->target ?? '';

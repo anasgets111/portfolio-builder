@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use Kholil\FilamentAnalitik\Models\PageView;
 use Symfony\Component\HttpFoundation\Response;
@@ -50,7 +51,7 @@ class TrackPortfolioPageView
         return hash_hmac(
             'sha256',
             implode('|', [$request->ip() ?? '', $request->userAgent() ?? '']),
-            (string) config('app.key'),
+            Config::string('app.key'),
         );
     }
 
