@@ -2,6 +2,10 @@
 
 A Laravel and Filament portfolio website with a CMS at `/admin`. It starts with neutral placeholder content so you can replace every visible detail with your own work, then move that content to a fresh installation with a portable backup.
 
+<p align="center">
+  <img width="1904"  height="4211" alt="Portfolio homepage preview" src="https://github.com/user-attachments/assets/1fa9745b-176f-476c-a653-7a54632a1fc2" />
+</p>
+
 ## What it does
 
 Portfolio Builder turns your professional profile, projects, experience, skills, links, SEO metadata, and optional CV into an editable public portfolio. Filament provides the private CMS, while the Laravel frontend displays only the records you choose to publish and orders them using `sort_order`.
@@ -18,34 +22,34 @@ It is intended as a reusable starting point: update content in the CMS and make 
 
 1. Install PHP dependencies and create your environment file:
 
-   ```bash
-   composer install
-   cp .env.example .env
-   php artisan key:generate
-   ```
+    ```bash
+    composer install
+    cp .env.example .env
+    php artisan key:generate
+    ```
 
 2. Create the SQLite database file if it does not already exist, then migrate and seed the application:
 
-   ```bash
-   touch database/database.sqlite
-   php artisan migrate --seed
-   php artisan storage:link
-   ```
+    ```bash
+    touch database/database.sqlite
+    php artisan migrate --seed
+    php artisan storage:link
+    ```
 
 3. Install and build frontend assets:
 
-   ```bash
-   npm install
-   npm run build
-   ```
+    ```bash
+    npm install
+    npm run build
+    ```
 
 4. Start the application:
 
-   ```bash
-   composer run dev
-   ```
+    ```bash
+    composer run dev
+    ```
 
-   Visit the URL configured by `APP_URL` and append `/admin`. On the first visit, create the one administrator account; afterwards, `/admin` shows the normal sign-in screen. In this checkout, those URLs are `https://portofolio.test` and `https://portofolio.test/admin`.
+    Visit the URL configured by `APP_URL` and append `/admin`. On the first visit, create the one administrator account; afterwards, `/admin` shows the normal sign-in screen. In this checkout, those URLs are `https://portofolio.test` and `https://portofolio.test/admin`.
 
 ## Backup and restore
 
