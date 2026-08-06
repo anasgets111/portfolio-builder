@@ -6,6 +6,7 @@ use App\Models\Experience;
 use App\Models\Project;
 use App\Models\SiteSetting;
 use App\Models\Skill;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
@@ -78,7 +79,8 @@ class ExportPortfolioBackup
         $projects = Project::query()->ordered()->get();
         $experiences = Experience::query()
             ->ordered()
-            ->with(['projects' => fn ($query) => $query->ordered()])
+            // ponytail: with() closures type as Relation<*,*,*>, so ordered() cannot resolve; inline until Larastan narrows it.
+            ->with(['projects' => fn (Relation $query): Relation => $query->orderBy('sort_order')->orderBy('id')])
             ->get();
         $skills = Skill::query()->ordered()->get();
         $publicDisk = Storage::disk('public');
