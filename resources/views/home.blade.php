@@ -73,6 +73,11 @@
         <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
+        @if (config('filament-analitik.enabled'))
+            <meta name="csrf-token" content="{{ csrf_token() }}">
+            <meta name="analytics-endpoint" content="{{ route('analytics.events.store') }}">
+        @endif
+
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -84,7 +89,7 @@
         <div id="top" class="min-h-screen">
             <aside class="sticky top-0 z-40 border-b border-ink bg-canvas">
                 <nav class="mx-auto flex min-h-18 w-full max-w-7xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] md:px-4 [&::-webkit-scrollbar]:hidden" aria-label="Portfolio sections">
-                    <a href="#top" class="mr-auto flex size-11 shrink-0 items-center justify-center bg-brand text-[1.375rem] font-black leading-none text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft" aria-label="Back to the beginning">
+                    <a href="#top" data-analytics-event="navigation_clicked" data-analytics-target="top" class="mr-auto flex size-11 shrink-0 items-center justify-center bg-brand text-[1.375rem] font-black leading-none text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft" aria-label="Back to the beginning">
                         {{ $logoInitials }}<span class="text-ink">.</span>
                     </a>
 
@@ -92,6 +97,8 @@
                         <a
                             href="#{{ $sectionId }}"
                             data-nav-link
+                            data-analytics-event="navigation_clicked"
+                            data-analytics-target="{{ $sectionId }}"
                             class="flex h-18 shrink-0 items-center justify-center border-b-2 border-transparent px-2.5 text-[0.8rem] font-bold uppercase tracking-[0.08em] text-ink-muted transition hover:border-brand hover:text-ink md:px-3 md:text-xs aria-[current=location]:border-brand aria-[current=location]:text-brand"
                         >
                             {{ $label }}
@@ -99,7 +106,7 @@
                     @endforeach
 
                     @if (filled($siteSetting?->resume_file))
-                        <a href="{{ route('cv.show') }}" target="_blank" rel="noopener noreferrer" class="flex size-10 shrink-0 items-center justify-center gap-2 bg-brand text-xs font-bold uppercase tracking-[0.08em] text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft sm:w-auto sm:px-3" aria-label="Open my CV">
+                        <a href="{{ route('cv.show') }}" target="_blank" rel="noopener noreferrer" data-analytics-event="cv_opened" data-analytics-target="navigation" class="flex size-10 shrink-0 items-center justify-center gap-2 bg-brand text-xs font-bold uppercase tracking-[0.08em] text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft sm:w-auto sm:px-3" aria-label="Open my CV">
                             <x-heroicon-o-document-arrow-down class="size-4" aria-hidden="true" />
                             <span class="sr-only sm:not-sr-only">CV</span>
                         </a>
@@ -134,7 +141,7 @@
                             @endif
 
                             <div class="mt-7" data-reveal>
-                                <a href="#contact" class="inline-flex min-h-12 items-center justify-center gap-6 bg-brand px-6 text-base font-bold text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft">
+                                <a href="#contact" data-analytics-event="contact_clicked" data-analytics-target="hero" class="inline-flex min-h-12 items-center justify-center gap-6 bg-brand px-6 text-base font-bold text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft">
                                     Contact me <span aria-hidden="true">↘</span>
                                 </a>
                             </div>
@@ -231,11 +238,14 @@
                                         'md:grid-cols-[minmax(16rem,0.65fr)_minmax(20rem,1.35fr)]' => $loop->even,
                                     ])
                                     data-reveal
+                                    data-analytics-hover="project:{{ $project->id }}"
                                 >
                                     <span class="absolute left-0 top-3 text-xs font-extrabold tracking-[0.12em] text-brand" aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
                                     <button
                                         type="button"
                                         data-dialog-open="project-dialog-{{ $project->id }}"
+                                        data-analytics-event="project_opened"
+                                        data-analytics-target="project:{{ $project->id }}"
                                         aria-haspopup="dialog"
                                         aria-controls="project-dialog-{{ $project->id }}"
                                         @class([
@@ -263,13 +273,13 @@
                                             <div class="h-px min-w-4 grow bg-ink/30" aria-hidden="true"></div>
 
                                             @if (filled($project->source_url))
-                                                <a href="{{ $project->source_url }}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-ink-muted transition hover:text-brand" aria-label="View {{ $project->title }} source code">
+                                                <a href="{{ $project->source_url }}" target="_blank" rel="noopener noreferrer" data-analytics-event="project_link_clicked" data-analytics-target="project:{{ $project->id }}:source" class="shrink-0 text-ink-muted transition hover:text-brand" aria-label="View {{ $project->title }} source code">
                                                     <x-heroicon-o-code-bracket class="size-6" aria-hidden="true" />
                                                 </a>
                                             @endif
 
                                             @if (filled($project->live_url))
-                                                <a href="{{ $project->live_url }}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-ink-muted transition hover:text-brand" aria-label="View the live {{ $project->title }} project">
+                                                <a href="{{ $project->live_url }}" target="_blank" rel="noopener noreferrer" data-analytics-event="project_link_clicked" data-analytics-target="project:{{ $project->id }}:live" class="shrink-0 text-ink-muted transition hover:text-brand" aria-label="View the live {{ $project->title }} project">
                                                     <x-heroicon-o-arrow-top-right-on-square class="size-6" aria-hidden="true" />
                                                 </a>
                                             @endif
@@ -282,7 +292,7 @@
                                         </div>
 
                                         <p class="mt-3 text-[1.05rem] font-extralight leading-7 text-ink-muted">{{ $project->summary }}</p>
-                                        <button type="button" data-dialog-open="project-dialog-{{ $project->id }}" aria-haspopup="dialog" aria-controls="project-dialog-{{ $project->id }}" class="mt-5 border-b border-current pb-1 text-sm font-bold text-brand">
+                                        <button type="button" data-dialog-open="project-dialog-{{ $project->id }}" data-analytics-event="project_opened" data-analytics-target="project:{{ $project->id }}" aria-haspopup="dialog" aria-controls="project-dialog-{{ $project->id }}" class="mt-5 border-b border-current pb-1 text-sm font-bold text-brand">
                                             Learn more <span aria-hidden="true">›</span>
                                         </button>
                                     </div>
@@ -340,13 +350,13 @@
                                                         <h3 class="text-xl font-bold">Project Links<span class="text-brand">.</span></h3>
                                                         <div class="mt-3 flex flex-wrap gap-4 text-sm text-brand">
                                                             @if (filled($project->source_url))
-                                                                <a href="{{ $project->source_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded underline-offset-4 hover:underline">
+                                                                <a href="{{ $project->source_url }}" target="_blank" rel="noopener noreferrer" data-analytics-event="project_link_clicked" data-analytics-target="project:{{ $project->id }}:source" class="inline-flex items-center gap-2 rounded underline-offset-4 hover:underline">
                                                                     <x-heroicon-o-code-bracket class="size-5" aria-hidden="true" />
                                                                     Source code
                                                                 </a>
                                                             @endif
                                                             @if (filled($project->live_url))
-                                                                <a href="{{ $project->live_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded underline-offset-4 hover:underline">
+                                                                <a href="{{ $project->live_url }}" target="_blank" rel="noopener noreferrer" data-analytics-event="project_link_clicked" data-analytics-target="project:{{ $project->id }}:live" class="inline-flex items-center gap-2 rounded underline-offset-4 hover:underline">
                                                                     <x-heroicon-o-arrow-top-right-on-square class="size-5" aria-hidden="true" />
                                                                     Live project
                                                                 </a>
@@ -404,6 +414,8 @@
                                                         href="#project-{{ $project->id }}"
                                                         data-dialog-open="project-dialog-{{ $project->id }}"
                                                         data-related-project
+                                                        data-analytics-event="project_opened"
+                                                        data-analytics-target="project:{{ $project->id }}"
                                                         aria-haspopup="dialog"
                                                         aria-controls="project-dialog-{{ $project->id }}"
                                                         class="inline-flex items-center border-b border-current py-1 text-sm font-medium text-brand transition hover:text-brand-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
@@ -430,7 +442,7 @@
                         </div>
 
                         @if (filled($siteSetting?->email))
-                            <a href="mailto:{{ $siteSetting->email }}" class="mt-7 inline-flex min-h-14 items-center justify-center gap-2 bg-ink px-8 text-[1.375rem] font-medium text-canvas transition hover:bg-canvas hover:text-ink">
+                            <a href="mailto:{{ $siteSetting->email }}" data-analytics-event="contact_clicked" data-analytics-target="email" class="mt-7 inline-flex min-h-14 items-center justify-center gap-2 bg-ink px-8 text-[1.375rem] font-medium text-canvas transition hover:bg-canvas hover:text-ink">
                                 <x-heroicon-o-envelope class="size-6" aria-hidden="true" />
                                 Send Email
                             </a>
@@ -445,7 +457,7 @@
                 @if (filled($siteSetting?->name))
                     <p>&copy; {{ now()->year }} {{ $siteSetting->name }}</p>
                 @endif
-                <a href="#top" class="rounded text-brand underline-offset-4 hover:underline">Back to top</a>
+                <a href="#top" data-analytics-event="navigation_clicked" data-analytics-target="top" class="rounded text-brand underline-offset-4 hover:underline">Back to top</a>
             </footer>
         </div>
     </body>

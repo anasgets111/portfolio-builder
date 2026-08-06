@@ -97,3 +97,121 @@ document.querySelectorAll('.project-dialog').forEach((dialog) => {
         dialogTriggers.get(dialog)?.focus();
     });
 });
+
+const analyticsEndpoint = document.querySelector('meta[name="analytics-endpoint"]')?.content;
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+const analyticsDisabled = navigator.doNotTrack === '1' || navigator.globalPrivacyControl === true;
+
+if (analyticsEndpoint && csrfToken && !analyticsDisabled) {
+    const trackAnalyticsEvent = (name, target = null, value = null) => {
+        fetch(analyticsEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            keepalive: true,
+            body: JSON.stringify({ name, target, value }),
+        }).catch(() => {});
+    };
+
+    document.addEventListener('click', (event) => {
+        const trackedElement = event.target instanceof Element
+            ? event.target.closest('[data-analytics-event]')
+            : null;
+
+        if (!trackedElement) {
+            return;
+        }
+
+        trackAnalyticsEvent(
+            trackedElement.dataset.analyticsEvent,
+            trackedElement.dataset.analyticsTarget ?? null,
+        );
+    });
+
+    const visibleSections = new Set();
+    const viewedSections = new Set();
+    const sectionStartedAt = new Map();
+
+    const startSectionEngagement = (sectionId) => {
+        if (!viewedSections.has(sectionId)) {
+            viewedSections.add(sectionId);
+            trackAnalyticsEvent('section_viewed', sectionId);
+        }
+
+        if (!sectionStartedAt.has(sectionId)) {
+            sectionStartedAt.set(sectionId, window.performance.now());
+        }
+    };
+
+    const finishSectionEngagement = (sectionId) => {
+        const startedAt = sectionStartedAt.get(sectionId);
+
+        if (startedAt === undefined) {
+            return;
+        }
+
+        sectionStartedAt.delete(sectionId);
+        const duration = Math.round(window.performance.now() - startedAt);
+
+        if (duration >= 1000) {
+            trackAnalyticsEvent('section_engaged', sectionId, duration);
+        }
+    };
+
+    if ('IntersectionObserver' in window) {
+        const analyticsSectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    visibleSections.add(entry.target.id);
+                    startSectionEngagement(entry.target.id);
+                } else {
+                    visibleSections.delete(entry.target.id);
+                    finishSectionEngagement(entry.target.id);
+                }
+            });
+        }, {
+            rootMargin: '-20% 0px -20% 0px',
+            threshold: 0.01,
+        });
+
+        observedSections.forEach((section) => analyticsSectionObserver.observe(section));
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+            [...sectionStartedAt.keys()].forEach(finishSectionEngagement);
+        } else {
+            visibleSections.forEach(startSectionEngagement);
+        }
+    });
+
+    window.addEventListener('pagehide', () => {
+        [...sectionStartedAt.keys()].forEach(finishSectionEngagement);
+    });
+
+    if (window.matchMedia('(hover: hover)').matches) {
+        const hoveredProjects = new Set();
+
+        document.querySelectorAll('[data-analytics-hover]').forEach((element) => {
+            const target = element.dataset.analyticsHover;
+            let hoverTimer;
+
+            element.addEventListener('pointerenter', () => {
+                if (hoveredProjects.has(target)) {
+                    return;
+                }
+
+                hoverTimer = window.setTimeout(() => {
+                    hoveredProjects.add(target);
+                    trackAnalyticsEvent('project_hovered', target);
+                }, 1000);
+            });
+
+            element.addEventListener('pointerleave', () => {
+                window.clearTimeout(hoverTimer);
+            });
+        });
+    }
+}
