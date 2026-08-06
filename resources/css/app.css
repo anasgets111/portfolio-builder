@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme {
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-canvas: #1e1e2e;
+    --color-panel: #313244;
+    --color-ink: #cdd6f4;
+    --color-ink-muted: #a6adc8;
+    --color-brand: #cba6f7;
+    --color-brand-soft: #b4befe;
+}
+
+@layer base {
+    html {
+        color-scheme: dark;
+        scroll-behavior: smooth;
+        overflow-x: clip;
+    }
+
+    body {
+        min-height: 100vh;
+        overflow-x: clip;
+    }
+
+    ::selection {
+        color: var(--color-canvas);
+        background: var(--color-brand);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 4px;
+    }
+}
+
+[data-skills-track] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    [data-skills-window][data-animated] [data-skills-track] {
+        animation: skills-scroll 20s linear infinite;
+    }
+
+    [data-skills-window][data-animated]:focus-within [data-skills-track],
+    [data-skills-window][data-animated]:hover [data-skills-track] {
+        animation-play-state: paused;
+    }
+}
+
+@keyframes skills-scroll {
+    to {
+        transform: translateY(calc(-50% - 0.375rem));
+    }
+}
+
+.is-reveal-pending {
+    opacity: 0;
+    transform: translateY(4.5rem);
+}
+
+.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 500ms ease 100ms, transform 500ms ease 100ms;
+}
+
+.project-dialog {
+    opacity: 0;
+    transform: translateY(3rem) scale(0.98);
+    transition: opacity 220ms ease, transform 220ms ease, overlay 220ms ease allow-discrete, display 220ms ease allow-discrete;
+}
+
+.project-dialog[open] {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.project-dialog::backdrop {
+    background: rgb(17 17 27 / 0.82);
+    backdrop-filter: blur(12px);
+}
+
+@starting-style {
+    .project-dialog[open] {
+        opacity: 0;
+        transform: translateY(3rem) scale(0.98);
+    }
+}
+
+html.is-dialog-open {
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    [data-skills-window] {
+        height: auto;
+    }
+
+    [data-skills-clone] {
+        display: none;
+    }
+
+    .is-reveal-pending,
+    .is-revealed {
+        opacity: 1;
+        transform: none;
+    }
+}
