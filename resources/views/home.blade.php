@@ -89,8 +89,8 @@
         <div id="top" class="min-h-screen">
             <aside class="sticky top-0 z-40 border-b border-ink bg-canvas">
                 <nav class="mx-auto flex min-h-18 w-full max-w-7xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] md:px-4 [&::-webkit-scrollbar]:hidden" aria-label="Portfolio sections">
-                    <a href="#top" data-analytics-event="navigation_clicked" data-analytics-target="top" class="mr-auto flex size-11 shrink-0 items-center justify-center bg-brand text-[1.375rem] font-black leading-none text-canvas transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft" aria-label="Back to the beginning">
-                        {{ $logoInitials }}<span class="text-ink">.</span>
+                    <a href="#top" data-analytics-event="navigation_clicked" data-analytics-target="top" class="mr-auto flex size-11 shrink-0 items-center justify-center border border-brand-soft/45 bg-brand text-[1.35rem] font-black leading-none text-canvas shadow-[0.2rem_0.2rem_0_var(--color-panel)] transition duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-brand-soft hover:shadow-[0.4rem_0.4rem_0_var(--color-panel)] focus-visible:bg-brand-soft" aria-label="Back to the beginning">
+                        {{ $logoInitials }}
                     </a>
 
                     @foreach ([['about', 'About'], ['projects', 'Projects'], ['experience', 'Exp.'], ['contact', 'Contact']] as [$sectionId, $label])
