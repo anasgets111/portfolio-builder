@@ -14,6 +14,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -250,16 +251,10 @@ class SiteSettingForm
                                                         ->default(false)
                                                         ->required()
                                                         ->live(),
-                                                    TextInput::make('site_url')
-                                                        ->label('Production URL')
-                                                        ->placeholder('https://portfolio.example.com')
-                                                        ->helperText('The public origin used for canonical URLs, the sitemap, and social images. Do not include a path, query, or fragment.')
-                                                        ->url()
-                                                        ->maxLength(2048)
-                                                        ->required(fn (Get $get): bool => (bool) $get('is_indexable'))
-                                                        ->rules([fn (): Closure => self::productionUrlRule()])
-                                                        ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? rtrim(trim($state), '/') : null)
-                                                        ->live(debounce: 500),
+                                                    TextEntry::make('configured_application_url')
+                                                        ->label('Application URL')
+                                                        ->state(fn (): string => PortfolioMetadata::configuredApplicationUrl() ?? 'APP_URL is invalid')
+                                                        ->helperText('Read from APP_URL for this deployment. It is used for canonical URLs, the sitemap, and social images.'),
                                                     TextInput::make('site_locale')
                                                         ->label('Site language')
                                                         ->placeholder('en')
@@ -386,25 +381,6 @@ class SiteSettingForm
 
             if (! $isWebUrl && ! $isEmailUrl && ! $isTelephoneUrl) {
                 $fail('The :attribute must be a valid web, email, or telephone link.');
-            }
-        };
-    }
-
-    private static function productionUrlRule(): Closure
-    {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            if ($value === null || $value === '') {
-                return;
-            }
-
-            if (! is_string($value)) {
-                $fail('The :attribute must be a valid HTTP or HTTPS origin.');
-
-                return;
-            }
-
-            if (! PortfolioMetadata::isProductionOrigin($value)) {
-                $fail('The :attribute must contain only an HTTP or HTTPS origin, without a path, query, or fragment.');
             }
         };
     }

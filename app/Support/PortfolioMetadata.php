@@ -45,21 +45,26 @@ final class PortfolioMetadata
         return str_replace('-', '_', $this->locale());
     }
 
-    public function productionUrl(): ?string
+    public static function configuredApplicationUrl(): ?string
     {
-        $url = $this->filledString($this->siteSetting?->site_url);
+        $url = config('app.url');
 
-        if ($url === null || ! self::isProductionOrigin($url)) {
+        if (! is_string($url)) {
+            return null;
+        }
+
+        $url = trim($url);
+
+        if (! self::isApplicationOrigin($url)) {
             return null;
         }
 
         return rtrim($url, '/');
     }
 
-    public static function isProductionOrigin(mixed $value): bool
+    private static function isApplicationOrigin(string $value): bool
     {
-        if (! is_string($value)
-            || ! Str::startsWith($value, ['http://', 'https://'])
+        if (! Str::startsWith($value, ['http://', 'https://'])
             || ! Str::isUrl($value, ['http', 'https'])) {
             return false;
         }
@@ -76,20 +81,20 @@ final class PortfolioMetadata
 
     public function canonicalUrl(string $path = '/'): ?string
     {
-        $productionUrl = $this->productionUrl();
+        $applicationUrl = self::configuredApplicationUrl();
 
-        if ($productionUrl === null) {
+        if ($applicationUrl === null) {
             return null;
         }
 
         $relativePath = trim($path, '/');
 
-        return $relativePath === '' ? $productionUrl : "{$productionUrl}/{$relativePath}";
+        return $relativePath === '' ? $applicationUrl : "{$applicationUrl}/{$relativePath}";
     }
 
     public function isIndexable(): bool
     {
-        return (bool) $this->siteSetting?->is_indexable && $this->productionUrl() !== null;
+        return (bool) $this->siteSetting?->is_indexable && self::configuredApplicationUrl() !== null;
     }
 
     public function robotsDirective(): string
@@ -200,7 +205,7 @@ final class PortfolioMetadata
         }
 
         $publicUrl = Storage::disk('public')->url($path);
-        $origin = $this->productionUrl();
+        $origin = self::configuredApplicationUrl();
 
         if ($origin !== null) {
             $publicPath = Str::startsWith($publicUrl, ['http://', 'https://'])

@@ -295,24 +295,28 @@ it('renders configured project actions', function () {
 });
 
 it('omits unavailable canonical and social image metadata', function () {
+    config(['app.url' => 'not a valid URL']);
+
     SiteSetting::factory()->create([
-        'site_url' => null,
+        'is_indexable' => true,
         'og_image' => null,
     ]);
 
     $this->get(route('home'))
         ->assertSuccessful()
+        ->assertSee('name="robots" content="noindex, nofollow"', false)
         ->assertDontSee('rel="canonical"', false)
         ->assertDontSee('property="og:', false)
         ->assertDontSee('name="twitter:image"', false);
 });
 
 it('renders configured canonical and open graph metadata', function () {
+    config(['app.url' => 'https://portfolio.example.com/']);
+
     SiteSetting::factory()->create([
         'name' => 'Portfolio Owner',
         'professional_title' => 'Product Engineer',
         'hero_description' => 'A fallback description from the public portfolio introduction.',
-        'site_url' => 'https://portfolio.example.com/',
         'site_locale' => 'en-GB',
         'is_indexable' => true,
         'seo_title' => null,
@@ -345,10 +349,11 @@ it('renders configured canonical and open graph metadata', function () {
 });
 
 it('protects unfinished portfolios from indexing', function () {
+    config(['app.url' => 'https://portfolio.example.com']);
+
     SiteSetting::factory()->create([
         'name' => 'Draft Portfolio',
         'seo_title' => null,
-        'site_url' => 'https://portfolio.example.com',
         'is_indexable' => false,
         'og_image' => null,
     ]);
@@ -362,10 +367,8 @@ it('protects unfinished portfolios from indexing', function () {
 });
 
 it('publishes a sitemap for indexable portfolios', function () {
-    SiteSetting::factory()->create([
-        'site_url' => 'https://portfolio.example.com/',
-        'is_indexable' => true,
-    ]);
+    config(['app.url' => 'https://portfolio.example.com/']);
+    SiteSetting::factory()->create(['is_indexable' => true]);
 
     $this->get(route('sitemap'))
         ->assertSuccessful()

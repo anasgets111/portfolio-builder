@@ -26,7 +26,6 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('whatsapp_number')->nullable();
             $table->string('resume_file')->nullable();
-            $table->text('site_url')->nullable();
             $table->string('site_locale', 35)->default('en');
             $table->boolean('is_indexable')->default(false);
             $table->string('seo_title')->nullable();

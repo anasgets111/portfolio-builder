@@ -143,7 +143,6 @@ it('edits but cannot create or delete the singleton site settings record', funct
     Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
         ->fillForm([
             'name' => 'Updated Name',
-            'site_url' => 'https://portfolio.example.com/',
             'site_locale' => 'en-GB',
             'is_indexable' => true,
             'social_links' => [[
@@ -156,7 +155,6 @@ it('edits but cannot create or delete the singleton site settings record', funct
         ->assertHasNoFormErrors();
 
     expect($siteSetting->refresh()->name)->toBe('Updated Name')
-        ->and($siteSetting->site_url)->toBe('https://portfolio.example.com')
         ->and($siteSetting->site_locale)->toBe('en-GB')
         ->and($siteSetting->is_indexable)->toBeTrue()
         ->and(SiteSettingResource::canCreate())->toBeFalse()
@@ -164,22 +162,21 @@ it('edits but cannot create or delete the singleton site settings record', funct
         ->and(SiteSettingResource::canDeleteAny())->toBeFalse();
 });
 
-it('validates generic search settings in the site settings editor', function () {
-    $siteSetting = SiteSetting::factory()->create([
-        'site_url' => null,
-        'is_indexable' => false,
-    ]);
+it('shows the deployment URL and validates editable search settings', function () {
+    config(['app.url' => 'https://portfolio.example.com']);
+    $siteSetting = SiteSetting::factory()->create(['is_indexable' => false]);
 
     Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
         ->assertSee('Metadata preview')
+        ->assertSee('https://portfolio.example.com')
+        ->assertFormFieldDoesNotExist('site_url')
         ->fillForm([
             'is_indexable' => true,
-            'site_url' => 'https://portfolio.example.com/projects?draft=1',
             'site_locale' => 'not a locale',
             'twitter_handle' => '@invalid-handle',
         ])
         ->call('save')
-        ->assertHasFormErrors(['site_url', 'site_locale', 'twitter_handle']);
+        ->assertHasFormErrors(['site_locale', 'twitter_handle']);
 });
 
 it('requires a social preview image with a wide sharing ratio', function () {

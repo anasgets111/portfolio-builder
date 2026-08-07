@@ -26,7 +26,6 @@ class SiteSettingFactory extends Factory
             'about_content' => fake()->paragraphs(3, true),
             'contact_content' => fake()->paragraph(),
             'email' => fake()->safeEmail(),
-            'site_url' => 'https://'.fake()->domainName(),
             'site_locale' => 'en',
             'is_indexable' => false,
             'seo_title' => fake()->sentence(5),

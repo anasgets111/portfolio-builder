@@ -6,10 +6,10 @@
         ? $get('seo_description')
         : (filled($get('hero_description')) ? $get('hero_description') : 'Add a concise summary of the portfolio.');
     $description = \Illuminate\Support\Str::limit(\Illuminate\Support\Str::squish(strip_tags($description)), 180);
-    $productionUrl = filled($get('site_url')) ? rtrim($get('site_url'), '/') : 'https://portfolio.example.com';
-    $displayUrl = \Illuminate\Support\Str::limit($productionUrl, 64);
-    $isIndexable = (bool) $get('is_indexable');
-    $configuredHost = parse_url($productionUrl, PHP_URL_HOST);
+    $applicationUrl = \App\Support\PortfolioMetadata::configuredApplicationUrl();
+    $displayUrl = \Illuminate\Support\Str::limit($applicationUrl ?? 'APP_URL is invalid', 64);
+    $isIndexable = (bool) $get('is_indexable') && $applicationUrl !== null;
+    $configuredHost = $applicationUrl === null ? null : parse_url($applicationUrl, PHP_URL_HOST);
     $hostDiffers = is_string($configuredHost) && $configuredHost !== request()->getHost();
     $imageState = $get('og_image');
     $imageUrl = null;
@@ -31,18 +31,18 @@
 
         <span @class([
             'rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset',
-            'bg-success-50 text-success-700 ring-success-600/20 dark:bg-success-400/10 dark:text-success-400' => $isIndexable && filled($get('site_url')),
-            'bg-warning-50 text-warning-700 ring-warning-600/20 dark:bg-warning-400/10 dark:text-warning-400' => ! ($isIndexable && filled($get('site_url'))),
+            'bg-success-50 text-success-700 ring-success-600/20 dark:bg-success-400/10 dark:text-success-400' => $isIndexable,
+            'bg-warning-50 text-warning-700 ring-warning-600/20 dark:bg-warning-400/10 dark:text-warning-400' => ! $isIndexable,
         ])>
-            {{ $isIndexable && filled($get('site_url')) ? 'Indexing enabled' : 'Protected from indexing' }}
+            {{ $isIndexable ? 'Indexing enabled' : 'Protected from indexing' }}
         </span>
     </div>
 
-    @if ($isIndexable && blank($get('site_url')))
+    @if ((bool) $get('is_indexable') && $applicationUrl === null)
         <div class="rounded-xl bg-danger-50 p-3 text-sm text-danger-700 ring-1 ring-inset ring-danger-600/20 dark:bg-danger-400/10 dark:text-danger-400">
-            Add the production URL before enabling indexing.
+            Configure APP_URL as a valid HTTP or HTTPS origin before enabling indexing.
         </div>
-    @elseif ($hostDiffers && filled($get('site_url')))
+    @elseif ($hostDiffers)
         <div class="rounded-xl bg-info-50 p-3 text-sm text-info-700 ring-1 ring-inset ring-info-600/20 dark:bg-info-400/10 dark:text-info-400">
             The production host differs from this admin host. This is expected when editing locally or on staging.
         </div>
