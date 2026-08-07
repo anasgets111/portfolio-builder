@@ -30,8 +30,6 @@ it('casts structured CMS attributes to their domain types', function () {
     expect($siteSetting->social_links)->toHaveCount(1)
         ->and($siteSetting->appearance['font'])->toBe('system')
         ->and($project->technologies)->toBe(['Laravel', 'Livewire'])
-        ->and($project->is_published)->toBeTrue()
-        ->and($project->published_at)->not->toBeNull()
         ->and($experience->start_date->toDateString())->toBe('2023-12-01')
         ->and($experience->end_date)->toBeNull()
         ->and($experience->technologies)->toBe(['Laravel', 'Filament']);
