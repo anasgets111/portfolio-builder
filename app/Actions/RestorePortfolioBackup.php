@@ -6,7 +6,6 @@ use App\Models\Experience;
 use App\Models\Project;
 use App\Models\SiteSetting;
 use App\Models\Skill;
-use App\Support\PortfolioMetadata;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -186,12 +185,6 @@ class RestorePortfolioBackup
             'site_setting.contact_content' => ['nullable', 'string'],
             'site_setting.email' => ['nullable', 'email', 'max:255'],
             'site_setting.resume_file' => ['nullable', 'string'],
-            'site_setting.site_url' => [
-                'nullable',
-                Rule::requiredIf((bool) data_get($manifest, 'site_setting.is_indexable')),
-                'url:http,https',
-                'max:2048',
-            ],
             'site_setting.site_locale' => ['required', 'string', 'max:35', 'regex:/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/'],
             'site_setting.is_indexable' => ['required', 'boolean'],
             'site_setting.seo_title' => ['nullable', 'string', 'max:255'],
@@ -249,15 +242,6 @@ class RestorePortfolioBackup
 
         $validator->after(function (LaravelValidator $validator): void {
             $appearance = data_get($validator->getData(), 'site_setting.appearance');
-            $siteUrl = data_get($validator->getData(), 'site_setting.site_url');
-
-            if (is_string($siteUrl) && ! PortfolioMetadata::isProductionOrigin($siteUrl)) {
-                $validator->errors()->add(
-                    'site_setting.site_url',
-                    'The production URL must not contain a path, query, or fragment.',
-                );
-            }
-
             if (! is_array($appearance) || ! is_array($appearance['colors'] ?? null)) {
                 return;
             }

@@ -21,7 +21,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $contact_content
  * @property string|null $email
  * @property string|null $resume_file
- * @property string|null $site_url
  * @property string $site_locale
  * @property bool $is_indexable
  * @property string|null $seo_title
@@ -47,7 +46,6 @@ use Illuminate\Support\Carbon;
     'contact_content',
     'email',
     'resume_file',
-    'site_url',
     'site_locale',
     'is_indexable',
     'seo_title',

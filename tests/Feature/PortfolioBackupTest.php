@@ -109,6 +109,8 @@ it('exports portfolio records relationships and referenced media', function () {
         ->and($zip->getFromName('media/projects/portfolio.jpg'))->toBe($fixture['project'])
         ->and($zip->getFromName('media/site/resumes/resume.pdf'))->toBe($fixture['resume']);
 
+    expect($manifest['site_setting'])->not->toHaveKey('site_url');
+
     $zip->close();
 });
 

@@ -32,7 +32,6 @@ class ExportPortfolioBackup
         'contact_content',
         'email',
         'resume_file',
-        'site_url',
         'site_locale',
         'is_indexable',
         'seo_title',
