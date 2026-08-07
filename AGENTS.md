@@ -91,7 +91,8 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 - An agent may create or update portfolio content with Tinker only when the user explicitly asks for that content change and has supplied or approved the content. Never invent personal names, contact details, work history, project links, or credentials.
 - Inspect the relevant model, Filament form, and database schema first. Use `database-query` for read-only checks; use Tinker only for the requested write.
-- Keep the site settings as one singleton record. Required public-facing data is: name, professional title, hero copy, about/contact copy, email, social links, and SEO metadata. Profile image, sharing image, and CV are optional uploads.
+- Keep the site settings as one singleton record. Required public-facing data is: name, professional title, hero copy, about/contact copy, email, social links, `site_locale`, `is_indexable`, and SEO metadata. Profile image, sharing image, and CV are optional uploads.
+- Never write raw `appearance` JSON. Build it through `SiteSetting::resolveAppearance()` so unknown keys fall back to defaults, and check `SiteSetting::appearanceContrastFailures()` before persisting custom colors — the Filament form and the backup restore both enforce those contrast rules.
 - A project needs: title, summary, rich body, an existing public-disk image path, technologies, sort order, and publishing state. Source and live URLs are optional.
 - An experience needs: company, position, start date, location, description, technologies, sort order, and publishing state. End date and project relationships are optional. Create projects before attaching them to experiences.
 - A skill needs: a unique name, sort order, and publishing state.
