@@ -38,7 +38,8 @@ it('seeds generic site settings and social links', function () {
         ->and($siteSetting->resume_file)->toBeNull()
         ->and($siteSetting->social_links)->toHaveCount(3)
         ->and($siteSetting->social_links[0]['platform'])->toBe('LinkedIn')
-        ->and($siteSetting->email)->toBe('hello@example.com');
+        ->and($siteSetting->email)->toBe('hello@example.com')
+        ->and($siteSetting->appearance)->toBe(SiteSetting::DEFAULT_APPEARANCE);
 });
 
 it('seeds a generic published project with no external links', function () {
@@ -96,26 +97,26 @@ it('can run the production seeders repeatedly without duplicating content', func
         ->and(SiteSetting::query()->sole()->getKey())->toBe($originalSiteSettingId);
 });
 
-it('resets the Open Graph image to the generic placeholder when site settings are reseeded', function () {
+it('resets site settings to generic defaults when reseeded', function () {
     $this->seed(SiteSettingSeeder::class);
 
     $siteSetting = SiteSetting::query()->sole();
-    $siteSetting->update(['og_image' => 'site/seo/custom-open-graph.png']);
+    $siteSetting->update([
+        'og_image' => 'site/seo/custom-open-graph.png',
+        'resume_file' => 'site/resumes/custom-cv.pdf',
+        'appearance' => [
+            ...SiteSetting::DEFAULT_APPEARANCE,
+            'font' => 'system',
+            'page_width' => 'wide',
+        ],
+    ]);
 
     $this->seed(SiteSettingSeeder::class);
 
-    expect($siteSetting->refresh()->og_image)->toBe('site/profile-images/profile-placeholder.svg');
-});
-
-it('clears the CV when site settings are reseeded', function () {
-    $this->seed(SiteSettingSeeder::class);
-
-    $siteSetting = SiteSetting::query()->sole();
-    $siteSetting->update(['resume_file' => 'site/resumes/custom-cv.pdf']);
-
-    $this->seed(SiteSettingSeeder::class);
-
-    expect($siteSetting->refresh()->resume_file)->toBeNull();
+    expect($siteSetting->refresh())
+        ->og_image->toBe('site/profile-images/profile-placeholder.svg')
+        ->resume_file->toBeNull()
+        ->appearance->toBe(SiteSetting::DEFAULT_APPEARANCE);
 });
 
 it('resets profile and project images to generic placeholders when content is reseeded', function () {

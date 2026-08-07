@@ -160,6 +160,133 @@ it('edits but cannot create or delete the singleton site settings record', funct
         ->and(SiteSettingResource::canDeleteAny())->toBeFalse();
 });
 
+it('edits controlled portfolio appearance settings', function () {
+    $siteSetting = SiteSetting::factory()->create();
+    $appearance = [
+        ...SiteSetting::DEFAULT_APPEARANCE,
+        'font' => 'system',
+        'color_scheme' => 'light',
+        'page_width' => 'wide',
+        'corner_style' => 'soft',
+        'hero_layout' => 'portrait_left',
+        'project_layout' => 'media_left',
+        'motion' => 'off',
+    ];
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm(['appearance' => $appearance])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($siteSetting->refresh()->appearance)->toBe($appearance);
+});
+
+it('previews unsaved design changes', function () {
+    $siteSetting = SiteSetting::factory()->create([
+        'hero_heading' => 'Published heading',
+    ]);
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm([
+            'hero_heading' => 'Draft heading',
+            'appearance' => [
+                ...SiteSetting::DEFAULT_APPEARANCE,
+                'page_width' => 'wide',
+                'corner_style' => 'soft',
+                'hero_layout' => 'portrait_left',
+                'project_layout' => 'media_left',
+                'motion' => 'off',
+            ],
+        ])
+        ->assertSee('Draft heading')
+        ->assertSee('Wide canvas')
+        ->assertSee('Soft corners · Motion off');
+
+    expect($siteSetting->refresh()->hero_heading)->toBe('Published heading');
+});
+
+it('applies a curated theme as editable appearance values', function () {
+    $siteSetting = SiteSetting::factory()->create();
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm(['appearance_theme' => 'terminal'])
+        ->assertFormSet([
+            'appearance' => SiteSetting::APPEARANCE_THEMES['terminal'],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($siteSetting->refresh()->appearance)->toBe(SiteSetting::APPEARANCE_THEMES['terminal']);
+});
+
+it('applies a color theme without changing other appearance values', function () {
+    $appearance = [
+        ...SiteSetting::DEFAULT_APPEARANCE,
+        'font' => 'inter',
+        'page_width' => 'wide',
+        'corner_style' => 'soft',
+        'hero_layout' => 'portrait_left',
+        'project_layout' => 'media_left',
+        'motion' => 'off',
+    ];
+    $siteSetting = SiteSetting::factory()->create(['appearance' => $appearance]);
+    $expectedAppearance = [
+        ...$appearance,
+        'colors' => SiteSetting::APPEARANCE_COLOR_THEMES['dracula'],
+    ];
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm(['color_theme' => 'dracula'])
+        ->assertFormSet([
+            'appearance' => $expectedAppearance,
+            'appearance_theme' => null,
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($siteSetting->refresh()->appearance)->toBe($expectedAppearance);
+});
+
+it('rejects unreadable or unapproved portfolio appearance settings', function () {
+    $siteSetting = SiteSetting::factory()->create();
+    $appearance = [
+        ...SiteSetting::DEFAULT_APPEARANCE,
+        'colors' => [
+            ...SiteSetting::DEFAULT_APPEARANCE['colors'],
+            'brand' => SiteSetting::DEFAULT_APPEARANCE['colors']['canvas'],
+        ],
+        'project_layout' => 'arbitrary-css-class',
+    ];
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm(['appearance' => $appearance])
+        ->call('save')
+        ->assertHasFormErrors([
+            'appearance.colors.brand',
+            'appearance.project_layout',
+        ]);
+});
+
+it('loads appearance defaults without publishing them immediately', function () {
+    $customAppearance = [
+        ...SiteSetting::DEFAULT_APPEARANCE,
+        'font' => 'system',
+        'page_width' => 'wide',
+    ];
+    $siteSetting = SiteSetting::factory()->create(['appearance' => $customAppearance]);
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm(['appearance_theme' => 'terminal'])
+        ->callAction('restoreAppearanceDefaults')
+        ->assertFormSet([
+            'appearance' => SiteSetting::DEFAULT_APPEARANCE,
+            'appearance_theme' => null,
+            'color_theme' => null,
+        ]);
+
+    expect($siteSetting->refresh()->appearance)->toBe($customAppearance);
+});
+
 it('accepts supported social link schemes and rejects unsafe schemes', function () {
     $siteSetting = SiteSetting::factory()->create();
 

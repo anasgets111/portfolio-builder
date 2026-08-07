@@ -42,6 +42,7 @@ HTML,
                     ['platform' => 'GitHub', 'label' => 'GitHub', 'url' => 'https://github.com/your-username'],
                     ['platform' => 'Email', 'label' => 'Email', 'url' => 'mailto:hello@example.com'],
                 ],
+                'appearance' => SiteSetting::DEFAULT_APPEARANCE,
             ],
         );
     }

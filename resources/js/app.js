@@ -1,4 +1,5 @@
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = document.documentElement.dataset.motion === 'off'
+    || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const revealElements = document.querySelectorAll('[data-reveal]');
 

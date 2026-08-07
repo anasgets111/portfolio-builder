@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator as LaravelValidator;
 use RuntimeException;
 use Throwable;
 use ZipArchive;
@@ -163,7 +165,13 @@ class RestorePortfolioBackup
      */
     private function validateManifest(array $manifest): array
     {
-        $validated = Validator::make($manifest, [
+        $appearanceRules = [];
+
+        foreach (SiteSetting::APPEARANCE_OPTIONS as $name => $options) {
+            $appearanceRules["site_setting.appearance.{$name}"] = ['required_with:site_setting.appearance', Rule::in(array_keys($options))];
+        }
+
+        $validator = Validator::make($manifest, [
             'format_version' => ['required', 'integer'],
             'exported_at' => ['required', 'date'],
             'site_setting' => ['required', 'array:'.implode(',', ExportPortfolioBackup::SITE_SETTING_FIELDS)],
@@ -189,6 +197,10 @@ class RestorePortfolioBackup
             'site_setting.social_links.*.platform' => ['required', 'string', 'max:100'],
             'site_setting.social_links.*.label' => ['required', 'string', 'max:100'],
             'site_setting.social_links.*.url' => ['required', 'string', 'max:2048'],
+            'site_setting.appearance' => ['nullable', 'array:colors,font,color_scheme,page_width,corner_style,hero_layout,project_layout,motion'],
+            'site_setting.appearance.colors' => ['required_with:site_setting.appearance', 'array:canvas,panel,ink,ink_muted,brand,brand_soft', 'required_array_keys:canvas,panel,ink,ink_muted,brand,brand_soft'],
+            'site_setting.appearance.colors.*' => ['regex:/^#[0-9a-f]{6}$/i'],
+            ...$appearanceRules,
             'projects' => ['required', 'array', 'max:1000'],
             'projects.*' => ['array:key,'.implode(',', ExportPortfolioBackup::PROJECT_FIELDS)],
             'projects.*.key' => ['required', 'string', 'distinct'],
@@ -227,12 +239,27 @@ class RestorePortfolioBackup
             'media.*.path' => ['required', 'string', 'distinct'],
             'media.*.sha256' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/'],
             'media.*.bytes' => ['required', 'integer', 'min:1'],
-        ])->validate();
+        ]);
+
+        $validator->after(function (LaravelValidator $validator): void {
+            $appearance = data_get($validator->getData(), 'site_setting.appearance');
+
+            if (! is_array($appearance) || ! is_array($appearance['colors'] ?? null)) {
+                return;
+            }
+
+            foreach (SiteSetting::appearanceContrastFailures($appearance['colors']) as $failure) {
+                $validator->errors()->add('site_setting.appearance.colors', $failure);
+            }
+        });
+
+        $validated = $validator->validate();
 
         $siteSetting = $this->manifestFields(
             Arr::array($validated, 'site_setting'),
             ExportPortfolioBackup::SITE_SETTING_FIELDS,
         );
+        $siteSetting['appearance'] = SiteSetting::resolveAppearance($siteSetting['appearance'] ?? null);
         $projects = [];
         $experiences = [];
         $skills = [];

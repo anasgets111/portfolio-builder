@@ -11,6 +11,7 @@ use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -43,6 +44,11 @@ function createPortfolioBackupFixture(): array
         'profile_image' => 'site/profile-images/profile.jpg',
         'resume_file' => 'site/resumes/resume.pdf',
         'og_image' => null,
+        'appearance' => [
+            ...SiteSetting::DEFAULT_APPEARANCE,
+            'font' => 'system',
+            'page_width' => 'wide',
+        ],
     ]);
 
     $project = Project::factory()->published()->create([
@@ -85,6 +91,8 @@ it('exports portfolio records relationships and referenced media', function () {
     expect($manifest)
         ->format_version->toBe(1)
         ->site_setting->name->toBe('Backup Owner')
+        ->site_setting->appearance->font->toBe('system')
+        ->site_setting->appearance->page_width->toBe('wide')
         ->projects->toHaveCount(1)
         ->projects->{0}->title->toBe('Portable Project')
         ->experiences->toHaveCount(1)
@@ -123,6 +131,8 @@ it('restores a backup into fresh portfolio records and media paths', function ()
     expect($siteSetting)
         ->not->toBeNull()
         ->name->toBe('Backup Owner')
+        ->and($siteSetting?->appearance['font'])->toBe('system')
+        ->and($siteSetting?->appearance['page_width'])->toBe('wide')
         ->and($siteSetting?->profile_image)->not->toBe('site/profile-images/profile.jpg')
         ->and($siteSetting?->resume_file)->not->toBe('site/resumes/resume.pdf')
         ->and($project->title)->toBe('Portable Project')
@@ -141,6 +151,55 @@ it('restores a backup into fresh portfolio records and media paths', function ()
     expect(Storage::disk('public')->get($siteSetting->profile_image))->toBe($fixture['profile'])
         ->and(Storage::disk('public')->get($siteSetting->resume_file))->toBe($fixture['resume'])
         ->and(Storage::disk('public')->get($project->image))->toBe($fixture['project']);
+});
+
+it('restores old backups without appearance using the current defaults', function () {
+    $fixture = createPortfolioBackupFixture();
+    $zip = new ZipArchive;
+    $zip->open($fixture['path']);
+    $manifest = json_decode(
+        $zip->getFromName('portfolio-backup.json'),
+        true,
+        flags: JSON_THROW_ON_ERROR,
+    );
+    unset($manifest['site_setting']['appearance']);
+    $zip->deleteName('portfolio-backup.json');
+    $zip->addFromString('portfolio-backup.json', json_encode($manifest, JSON_THROW_ON_ERROR));
+    $zip->close();
+
+    SiteSetting::query()->sole()->update([
+        'appearance' => [
+            ...SiteSetting::DEFAULT_APPEARANCE,
+            'font' => 'system',
+            'page_width' => 'wide',
+        ],
+    ]);
+
+    (new RestorePortfolioBackup)->handle($fixture['path']);
+
+    expect(SiteSetting::query()->sole()->appearance)->toBe(SiteSetting::DEFAULT_APPEARANCE);
+});
+
+it('rejects inaccessible appearance values in backups', function () {
+    $fixture = createPortfolioBackupFixture();
+    $originalAppearance = SiteSetting::query()->sole()->appearance;
+    $zip = new ZipArchive;
+    $zip->open($fixture['path']);
+    $manifest = json_decode(
+        $zip->getFromName('portfolio-backup.json'),
+        true,
+        flags: JSON_THROW_ON_ERROR,
+    );
+    $manifest['site_setting']['appearance']['colors']['brand'] =
+        $manifest['site_setting']['appearance']['colors']['canvas'];
+    $zip->deleteName('portfolio-backup.json');
+    $zip->addFromString('portfolio-backup.json', json_encode($manifest, JSON_THROW_ON_ERROR));
+    $zip->close();
+
+    expect(fn () => (new RestorePortfolioBackup)->handle($fixture['path']))
+        ->toThrow(ValidationException::class);
+
+    expect(SiteSetting::query()->sole()->appearance)->toBe($originalAppearance);
 });
 
 it('rejects unsupported backup versions without changing current content', function () {

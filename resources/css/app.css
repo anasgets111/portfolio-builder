@@ -16,9 +16,16 @@
 
 @layer base {
     html {
-        color-scheme: dark;
         scroll-behavior: smooth;
         overflow-x: clip;
+    }
+
+    html[data-color-scheme='dark'] {
+        color-scheme: dark;
+    }
+
+    html[data-color-scheme='light'] {
+        color-scheme: light;
     }
 
     body {
@@ -37,6 +44,10 @@
     }
 }
 
+[data-appearance-surface] {
+    border-radius: var(--portfolio-surface-radius);
+}
+
 [data-skills-track] {
     display: flex;
     flex-direction: column;
@@ -44,7 +55,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    [data-skills-window][data-animated] [data-skills-track] {
+    html:not([data-motion='off']) [data-skills-window][data-animated] [data-skills-track] {
         animation: skills-scroll 20s linear infinite;
     }
 
@@ -96,6 +107,26 @@
 
 html.is-dialog-open {
     overflow: hidden;
+}
+
+html[data-motion='off'] {
+    scroll-behavior: auto;
+}
+
+html[data-motion='off'] *,
+html[data-motion='off'] *::before,
+html[data-motion='off'] *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+}
+
+html[data-motion='off'] [data-skills-window] {
+    height: auto;
+}
+
+html[data-motion='off'] [data-skills-clone] {
+    display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
