@@ -7,6 +7,7 @@ use App\Filament\Widgets\PortfolioInteractionsChart;
 use App\Filament\Widgets\RecentPageViewsTable;
 use App\Filament\Widgets\SectionEngagementChart;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
 use Kholil\FilamentAnalitik\Widgets\AnalitikStatsOverview;
 use Kholil\FilamentAnalitik\Widgets\PageViewsChart;
 use Kholil\FilamentAnalitik\Widgets\TopCountriesTable;
@@ -15,7 +16,7 @@ use Kholil\FilamentAnalitik\Widgets\VisitorsCountryChart;
 
 class Analytics extends Page
 {
-    protected static string|\BackedEnum|null $navigationIcon = 'fas-chart-bar';
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
     /** @return array<class-string> */
     protected function getHeaderWidgets(): array

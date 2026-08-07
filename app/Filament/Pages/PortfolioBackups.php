@@ -8,6 +8,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Pages\Page;
 use Filament\Schemas\Concerns\RestrictsFileUploadsToSchemaComponents;
+use Filament\Support\Icons\Heroicon;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -17,7 +18,7 @@ class PortfolioBackups extends Page
 {
     use RestrictsFileUploadsToSchemaComponents;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'fas-box-archive';
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
     protected static ?string $navigationLabel = 'Backups';
 
@@ -31,7 +32,7 @@ class PortfolioBackups extends Page
         return [
             Action::make('downloadBackup')
                 ->label('Download backup')
-                ->icon('fas-download')
+                ->icon(Heroicon::OutlinedArrowDownTray)
                 ->failureNotificationTitle('Backup could not be created')
                 ->action(function (Action $action, ExportPortfolioBackup $export): ?BinaryFileResponse {
                     try {
@@ -53,7 +54,7 @@ class PortfolioBackups extends Page
                 }),
             Action::make('restoreBackup')
                 ->label('Restore backup')
-                ->icon('fas-upload')
+                ->icon(Heroicon::OutlinedArrowUpTray)
                 ->color('danger')
                 ->modalHeading('Replace portfolio content?')
                 ->modalDescription('Projects, experiences, relationships, skills, and site settings will be replaced by this backup. Administrator accounts and analytics are not affected.')
