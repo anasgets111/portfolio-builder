@@ -4,6 +4,7 @@ use App\Models\Experience;
 use App\Models\Project;
 use App\Models\SiteSetting;
 use App\Models\Skill;
+use App\Support\PortfolioMark;
 use Database\Seeders\DatabaseSeeder;
 
 beforeEach(function () {
@@ -122,6 +123,39 @@ it('renders generic placeholder images with stable dimensions', function () {
             ->and($projectImage->getAttribute('loading'))->toBe('lazy')
             ->and($projectImage->getAttribute('alt'))->toContain('Project Title');
     }
+});
+
+it('uses the navbar mark as a versioned favicon', function () {
+    $siteSetting = SiteSetting::factory()->create([
+        'name' => 'Anas Khalifa',
+        'appearance' => [
+            ...SiteSetting::DEFAULT_APPEARANCE,
+            'colors' => [
+                ...SiteSetting::DEFAULT_APPEARANCE['colors'],
+                'brand' => '#ff79c6',
+                'brand_soft' => '#8be9fd',
+            ],
+        ],
+    ]);
+    $portfolioMark = new PortfolioMark($siteSetting);
+
+    $this->get(route('home'))
+        ->assertSuccessful()
+        ->assertSeeText('AK')
+        ->assertSee(
+            'href="'.route('favicon', ['v' => $portfolioMark->fingerprint()]).'" type="image/svg+xml" sizes="any"',
+            false,
+        )
+        ->assertDontSee('apple-touch-icon');
+
+    $favicon = $this->get(route('favicon', ['v' => $portfolioMark->fingerprint()]));
+
+    $favicon
+        ->assertSuccessful()
+        ->assertHeader('Content-Type', 'image/svg+xml')
+        ->assertSee('>AK</text>', false)
+        ->assertSee('fill="#ff79c6"', false)
+        ->assertSee('stroke="#8be9fd"', false);
 });
 
 it('renders custom uploads through their original fallback without invented variants', function () {

@@ -1,11 +1,4 @@
 @php
-    $logoInitials = \Illuminate\Support\Str::of($siteSetting?->name ?: 'Portfolio')
-        ->explode(' ')
-        ->filter()
-        ->take(2)
-        ->map(fn (string $namePart): string => \Illuminate\Support\Str::substr($namePart, 0, 1))
-        ->implode('');
-
     $seededImages = [
         'site/profile-images/profile-placeholder.svg' => [
             'width' => 960,
@@ -87,9 +80,7 @@
             <script type="application/ld+json">@json($structuredData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)</script>
         @endif
 
-        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-        <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+        <link rel="icon" href="{{ route('favicon', ['v' => $faviconVersion]) }}" type="image/svg+xml" sizes="any">
 
         @if (config('filament-analitik.enabled'))
             <meta name="csrf-token" content="{{ csrf_token() }}">
