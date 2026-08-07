@@ -6,6 +6,7 @@ use App\Models\Experience;
 use App\Models\Project;
 use App\Models\SiteSetting;
 use App\Models\Skill;
+use App\Support\PortfolioMark;
 use App\Support\PortfolioMetadata;
 use Illuminate\Contracts\View\View;
 
@@ -17,10 +18,13 @@ class HomeController extends Controller
     public function __invoke(): View
     {
         $siteSetting = SiteSetting::current();
+        $portfolioMark = new PortfolioMark($siteSetting);
 
         return view('home', [
             'siteSetting' => $siteSetting,
             'metadata' => new PortfolioMetadata($siteSetting),
+            'logoInitials' => $portfolioMark->initials(),
+            'faviconVersion' => $portfolioMark->fingerprint(),
             'projects' => Project::query()
                 ->published()
                 ->ordered()
