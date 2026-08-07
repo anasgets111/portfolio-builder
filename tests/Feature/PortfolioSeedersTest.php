@@ -45,15 +45,15 @@ it('seeds generic site settings and social links', function () {
 it('seeds a generic published project with no external links', function () {
     $this->seed(DatabaseSeeder::class);
 
-    $projects = Project::query()->ordered()->get();
+    $project = Project::query()->sole();
 
-    expect($projects->pluck('title')->all())->toBe(['Project Title'])
-        ->and($projects->every(fn (Project $project): bool => $project->is_published))->toBeTrue()
-        ->and($projects->every(fn (Project $project): bool => $project->published_at === null))->toBeTrue()
-        ->and($projects->sole()->source_url)->toBeNull()
-        ->and($projects->sole()->live_url)->toBeNull()
-        ->and($projects->sole()->image)->toBe('projects/project-placeholder.svg')
-        ->and($projects->sole()->technologies)->toBe(['Technology One', 'Technology Two']);
+    expect($project->title)->toBe('Project Title')
+        ->and($project->is_published)->toBeTrue()
+        ->and($project->published_at)->toBeNull()
+        ->and($project->source_url)->toBeNull()
+        ->and($project->live_url)->toBeNull()
+        ->and($project->image)->toBe('projects/project-placeholder.svg')
+        ->and($project->technologies)->toBe(['Technology One', 'Technology Two']);
 });
 
 it('seeds generic experience and skills placeholders', function () {

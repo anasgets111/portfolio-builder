@@ -13,29 +13,11 @@ use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
-    {
-        $this->configureDefaults();
-
-        RateLimiter::for(
-            'analytics',
-            fn (Request $request): Limit => Limit::perMinute(120)->by($request->ip()),
-        );
-    }
-
-    /**
-     * Configure default behaviors for production-ready applications.
-     */
-    protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);
 
-        DB::prohibitDestructiveCommands(
-            app()->isProduction(),
-        );
+        DB::prohibitDestructiveCommands(app()->isProduction());
 
         Password::defaults(fn (): ?Password => app()->isProduction()
             ? Password::min(12)
@@ -45,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
                 ->symbols()
                 ->uncompromised()
             : null,
+        );
+
+        RateLimiter::for(
+            'analytics',
+            fn (Request $request): Limit => Limit::perMinute(120)->by($request->ip()),
         );
     }
 }
