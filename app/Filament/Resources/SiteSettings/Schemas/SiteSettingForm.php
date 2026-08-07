@@ -22,6 +22,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -33,11 +34,11 @@ class SiteSettingForm
             ->components([
                 Tabs::make('Site settings')
                     ->tabs([
-                        Tab::make('Profile')
-                            ->icon('fas-id-card')
+                        Tab::make('Homepage')
+                            ->icon(Heroicon::OutlinedHome)
                             ->schema([
-                                Section::make('Identity and hero')
-                                    ->description('The introduction visitors see first.')
+                                Section::make('Identity')
+                                    ->description('Your name, role, and portrait across the portfolio.')
                                     ->schema([
                                         TextInput::make('name')
                                             ->maxLength(255)
@@ -45,6 +46,21 @@ class SiteSettingForm
                                         TextInput::make('professional_title')
                                             ->maxLength(255)
                                             ->live(debounce: 400),
+                                        FileUpload::make('profile_image')
+                                            ->image()
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                            ->disk('public')
+                                            ->directory('site/profile-images')
+                                            ->visibility('public')
+                                            ->maxSize(2048)
+                                            ->rule(Rule::dimensions()->maxWidth(2000)->maxHeight(2000))
+                                            ->helperText('JPEG, PNG, or WebP. Maximum 2 MB and 2000 × 2000 pixels. Uploaded files are served as-is.')
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
+                                Section::make('Hero')
+                                    ->description('The introduction visitors see first.')
+                                    ->schema([
                                         TextInput::make('hero_heading')
                                             ->maxLength(255)
                                             ->live(debounce: 400),
@@ -55,22 +71,14 @@ class SiteSettingForm
                                             ->rows(4)
                                             ->live(debounce: 500)
                                             ->columnSpanFull(),
-                                        FileUpload::make('profile_image')
-                                            ->image()
-                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                                            ->disk('public')
-                                            ->directory('site/profile-images')
-                                            ->visibility('public')
-                                            ->maxSize(2048)
-                                            ->rule(Rule::dimensions()->maxWidth(2000)->maxHeight(2000))
-                                            ->helperText('JPEG, PNG, or WebP. Maximum 2 MB and 2000 × 2000 pixels. Uploaded files are served as-is.'),
                                     ])
                                     ->columns(2),
                             ]),
-                        Tab::make('Content')
-                            ->icon('fas-file-lines')
+                        Tab::make('About')
+                            ->icon(Heroicon::OutlinedDocumentText)
                             ->schema([
-                                Section::make('About and contact')
+                                Section::make('About section')
+                                    ->description('Tell visitors about your background, approach, and strengths.')
                                     ->schema([
                                         RichEditor::make('about_content')
                                             ->toolbarButtons([
@@ -78,16 +86,27 @@ class SiteSettingForm
                                                 ['h2', 'h3'],
                                                 ['blockquote', 'bulletList', 'orderedList'],
                                                 ['undo', 'redo'],
-                                            ])
-                                            ->columnSpanFull(),
+                                            ]),
+                                    ]),
+                            ]),
+                        Tab::make('Contact')
+                            ->icon(Heroicon::OutlinedEnvelope)
+                            ->schema([
+                                Section::make('Contact section')
+                                    ->description('The message shown before visitors choose how to reach you.')
+                                    ->schema([
                                         RichEditor::make('contact_content')
                                             ->toolbarButtons([
                                                 ['bold', 'italic', 'link'],
                                                 ['bulletList', 'orderedList'],
                                                 ['undo', 'redo'],
-                                            ])
-                                            ->columnSpanFull(),
-                                        TextInput::make('email')->email()->maxLength(255),
+                                            ]),
+                                    ]),
+                                Section::make('Contact details and documents')
+                                    ->schema([
+                                        TextInput::make('email')
+                                            ->email()
+                                            ->maxLength(255),
                                         FileUpload::make('resume_file')
                                             ->label('CV')
                                             ->acceptedFileTypes(['application/pdf'])
@@ -114,8 +133,8 @@ class SiteSettingForm
                                             ->columnSpanFull(),
                                     ]),
                             ]),
-                        Tab::make('Design')
-                            ->icon('fas-palette')
+                        Tab::make('Appearance')
+                            ->icon(Heroicon::OutlinedSwatch)
                             ->schema([
                                 Grid::make([
                                     'default' => 1,
@@ -215,8 +234,8 @@ class SiteSettingForm
                                         ]),
                                 ]),
                             ]),
-                        Tab::make('SEO')
-                            ->icon('fas-magnifying-glass')
+                        Tab::make('SEO & Sharing')
+                            ->icon(Heroicon::OutlinedMagnifyingGlass)
                             ->schema([
                                 Section::make('Search and sharing')
                                     ->description('Metadata used by search engines and social previews.')

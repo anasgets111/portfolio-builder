@@ -18,6 +18,8 @@ class Analytics extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
+    protected static ?int $navigationSort = 40;
+
     /** @return array<class-string> */
     protected function getHeaderWidgets(): array
     {

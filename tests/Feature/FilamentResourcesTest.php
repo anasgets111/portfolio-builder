@@ -160,6 +160,13 @@ it('edits but cannot create or delete the singleton site settings record', funct
         ->and(SiteSettingResource::canDeleteAny())->toBeFalse();
 });
 
+it('links site settings navigation directly to its editor', function () {
+    $siteSetting = SiteSetting::factory()->create();
+
+    expect(SiteSettingResource::getNavigationUrl())
+        ->toBe(SiteSettingResource::getUrl('edit', ['record' => $siteSetting]));
+});
+
 it('edits controlled portfolio appearance settings', function () {
     $siteSetting = SiteSetting::factory()->create();
     $appearance = [
