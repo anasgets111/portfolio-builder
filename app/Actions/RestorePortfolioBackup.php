@@ -226,7 +226,7 @@ class RestorePortfolioBackup
             'experiences.*.technologies.*' => ['string', 'max:255'],
             'experiences.*.sort_order' => ['required', 'integer', 'min:0'],
             'experiences.*.is_published' => ['required', 'boolean'],
-            'experiences.*.project_keys' => ['required', 'array'],
+            'experiences.*.project_keys' => ['present', 'array'],
             'experiences.*.project_keys.*' => ['string'],
             'skills' => ['required', 'array', 'max:1000'],
             'skills.*' => ['array:'.implode(',', ExportPortfolioBackup::SKILL_FIELDS)],

@@ -126,7 +126,7 @@ it('renders generic placeholder images with stable dimensions', function () {
 
 it('uses the navbar mark as a versioned favicon', function () {
     SiteSetting::factory()->create([
-        'name' => 'Anas Khalifa',
+        'name' => 'Alpha Key',
         'appearance' => [
             ...SiteSetting::DEFAULT_APPEARANCE,
             'colors' => [
