@@ -8,7 +8,6 @@ use Illuminate\Database\QueryException;
 
 it('casts structured CMS attributes to their domain types', function () {
     $siteSetting = SiteSetting::factory()->create([
-        'seo_keywords' => ['Laravel', 'Portfolio'],
         'social_links' => [[
             'platform' => 'GitHub',
             'label' => 'GitHub',
@@ -28,8 +27,7 @@ it('casts structured CMS attributes to their domain types', function () {
         'technologies' => ['Laravel', 'Filament'],
     ]);
 
-    expect($siteSetting->seo_keywords)->toBe(['Laravel', 'Portfolio'])
-        ->and($siteSetting->social_links)->toHaveCount(1)
+    expect($siteSetting->social_links)->toHaveCount(1)
         ->and($siteSetting->appearance['font'])->toBe('system')
         ->and($project->technologies)->toBe(['Laravel', 'Livewire'])
         ->and($project->is_published)->toBeTrue()

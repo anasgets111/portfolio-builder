@@ -44,6 +44,8 @@ function createPortfolioBackupFixture(): array
         'profile_image' => 'site/profile-images/profile.jpg',
         'resume_file' => 'site/resumes/resume.pdf',
         'og_image' => null,
+        'site_locale' => 'en-GB',
+        'is_indexable' => true,
         'appearance' => [
             ...SiteSetting::DEFAULT_APPEARANCE,
             'font' => 'system',
@@ -93,6 +95,8 @@ it('exports portfolio records relationships and referenced media', function () {
         ->site_setting->name->toBe('Backup Owner')
         ->site_setting->appearance->font->toBe('system')
         ->site_setting->appearance->page_width->toBe('wide')
+        ->site_setting->site_locale->toBe('en-GB')
+        ->site_setting->is_indexable->toBeTrue()
         ->projects->toHaveCount(1)
         ->projects->{0}->title->toBe('Portable Project')
         ->experiences->toHaveCount(1)
@@ -133,6 +137,8 @@ it('restores a backup into fresh portfolio records and media paths', function ()
         ->name->toBe('Backup Owner')
         ->and($siteSetting?->appearance['font'])->toBe('system')
         ->and($siteSetting?->appearance['page_width'])->toBe('wide')
+        ->and($siteSetting?->site_locale)->toBe('en-GB')
+        ->and($siteSetting?->is_indexable)->toBeTrue()
         ->and($siteSetting?->profile_image)->not->toBe('site/profile-images/profile.jpg')
         ->and($siteSetting?->resume_file)->not->toBe('site/resumes/resume.pdf')
         ->and($project->title)->toBe('Portable Project')

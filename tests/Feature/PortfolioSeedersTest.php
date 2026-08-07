@@ -34,6 +34,8 @@ it('seeds generic site settings and social links', function () {
         ->and($siteSetting->hero_subheading)->toBe('Your Professional Title')
         ->and($siteSetting->seo_title)->toBe('Your Name | Portfolio')
         ->and($siteSetting->site_url)->toBeNull()
+        ->and($siteSetting->site_locale)->toBe('en')
+        ->and($siteSetting->is_indexable)->toBeFalse()
         ->and($siteSetting->og_image)->toBe($siteSetting->profile_image)
         ->and($siteSetting->resume_file)->toBeNull()
         ->and($siteSetting->social_links)->toHaveCount(3)
