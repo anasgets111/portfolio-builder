@@ -20,6 +20,8 @@ class SiteSettingResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
+    protected static ?int $navigationSort = 80;
+
     protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
@@ -45,6 +47,17 @@ class SiteSettingResource extends Resource
     public static function canDeleteAny(): bool
     {
         return false;
+    }
+
+    public static function getNavigationUrl(): string
+    {
+        $siteSetting = SiteSetting::current();
+
+        if ($siteSetting === null) {
+            return static::getUrl();
+        }
+
+        return static::getUrl('edit', ['record' => $siteSetting]);
     }
 
     public static function getPages(): array

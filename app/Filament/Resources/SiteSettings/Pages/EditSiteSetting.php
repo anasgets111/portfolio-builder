@@ -7,6 +7,7 @@ use App\Models\SiteSetting;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Icons\Heroicon;
 
 class EditSiteSetting extends EditRecord
 {
@@ -18,12 +19,12 @@ class EditSiteSetting extends EditRecord
         return [
             Action::make('viewPortfolio')
                 ->label('Open portfolio')
-                ->icon('fas-arrow-up-right-from-square')
+                ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                 ->url(route('home'))
                 ->openUrlInNewTab(),
             Action::make('restoreAppearanceDefaults')
                 ->label('Reset appearance')
-                ->icon('fas-rotate-left')
+                ->icon(Heroicon::OutlinedArrowPath)
                 ->color('gray')
                 ->modalHeading('Reset appearance controls?')
                 ->modalDescription('The current portfolio design will be loaded into the form. It will not be published until you save.')
