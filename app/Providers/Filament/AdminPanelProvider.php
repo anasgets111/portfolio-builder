@@ -34,6 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->registrationRouteSlug('setup')
             ->brandName('Portfolio CMS')
             ->maxContentWidth(Width::Full)
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
                 'primary' => Color::Rose,
             ])

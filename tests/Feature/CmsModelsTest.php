@@ -14,6 +14,10 @@ it('casts structured CMS attributes to their domain types', function () {
             'label' => 'GitHub',
             'url' => 'https://github.com/example',
         ]],
+        'appearance' => [
+            ...SiteSetting::DEFAULT_APPEARANCE,
+            'font' => 'system',
+        ],
     ]);
     $project = Project::factory()->published()->create([
         'technologies' => ['Laravel', 'Livewire'],
@@ -26,12 +30,26 @@ it('casts structured CMS attributes to their domain types', function () {
 
     expect($siteSetting->seo_keywords)->toBe(['Laravel', 'Portfolio'])
         ->and($siteSetting->social_links)->toHaveCount(1)
+        ->and($siteSetting->appearance['font'])->toBe('system')
         ->and($project->technologies)->toBe(['Laravel', 'Livewire'])
         ->and($project->is_published)->toBeTrue()
         ->and($project->published_at)->not->toBeNull()
         ->and($experience->start_date->toDateString())->toBe('2023-12-01')
         ->and($experience->end_date)->toBeNull()
         ->and($experience->technologies)->toBe(['Laravel', 'Filament']);
+});
+
+it('defines complete accessible appearance themes', function () {
+    foreach (SiteSetting::APPEARANCE_THEMES as $theme) {
+        expect(SiteSetting::resolveAppearance($theme))->toBe($theme)
+            ->and(SiteSetting::appearanceContrastFailures($theme['colors']))->toBe([]);
+    }
+});
+
+it('defines accessible color-only themes', function () {
+    foreach (SiteSetting::APPEARANCE_COLOR_THEMES as $colors) {
+        expect(SiteSetting::appearanceContrastFailures($colors))->toBe([]);
+    }
 });
 
 it('returns only published CMS records in their configured order', function () {

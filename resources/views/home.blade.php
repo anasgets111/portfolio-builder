@@ -26,10 +26,19 @@
     $hasScrollingSkills = $skills->count() > 14;
     $hasEmailSocialLink = collect($siteSetting?->social_links ?? [])
         ->contains(fn (array $socialLink): bool => \Illuminate\Support\Str::lower($socialLink['platform'] ?? '') === 'email');
+    $appearance = \App\Models\SiteSetting::resolveAppearance($siteSetting?->appearance);
+    $appearanceStyle = \App\Models\SiteSetting::appearanceStyle($appearance);
+    $hasPortraitOnLeft = $appearance['hero_layout'] === 'portrait_left';
 @endphp
 
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="bg-canvas">
+<html
+    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    class="bg-canvas"
+    data-color-scheme="{{ $appearance['color_scheme'] }}"
+    data-motion="{{ $appearance['motion'] }}"
+    style="{{ $appearanceStyle }}"
+>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -80,7 +89,9 @@
             <meta name="analytics-endpoint" content="{{ route('analytics.events.store') }}">
         @endif
 
-        @fonts
+        @if ($appearance['font'] !== 'system')
+            @fonts($appearance['font'])
+        @endif
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-canvas font-sans text-ink antialiased">
@@ -90,7 +101,7 @@
 
         <div id="top" class="min-h-screen">
             <aside class="sticky top-0 z-40 border-b border-ink bg-canvas">
-                <nav class="mx-auto flex min-h-18 w-full max-w-7xl items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] md:px-4 [&::-webkit-scrollbar]:hidden" aria-label="Portfolio sections">
+                <nav class="mx-auto flex min-h-18 w-full max-w-[var(--portfolio-page-width)] items-center gap-1 overflow-x-auto px-3 [scrollbar-width:none] md:px-4 [&::-webkit-scrollbar]:hidden" aria-label="Portfolio sections">
                     <a href="#top" data-analytics-event="navigation_clicked" data-analytics-target="top" class="mr-auto flex size-11 shrink-0 items-center justify-center border border-brand-soft/45 bg-brand text-[1.35rem] font-black leading-none text-canvas shadow-[0.2rem_0.2rem_0_var(--color-panel)] transition duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-brand-soft hover:shadow-[0.4rem_0.4rem_0_var(--color-panel)] focus-visible:bg-brand-soft" aria-label="Back to the beginning">
                         {{ $logoInitials }}
                     </a>
@@ -117,9 +128,16 @@
             </aside>
 
             <main id="main" tabindex="-1" class="scroll-mt-18 outline-none">
-                <section class="mx-auto mb-32 mt-12 max-w-7xl px-4 py-8 md:mb-56 md:mt-24" aria-labelledby="hero-title">
-                    <div class="flex flex-col-reverse items-start gap-12 md:grid md:grid-cols-[minmax(0,1fr)_13rem] md:items-end md:gap-[clamp(3rem,8vw,8rem)]">
-                        <div class="max-w-[62rem]">
+                <section class="mx-auto mb-32 mt-12 max-w-[var(--portfolio-page-width)] px-4 py-8 md:mb-56 md:mt-24" aria-labelledby="hero-title">
+                    <div
+                        data-hero-portrait="{{ $hasPortraitOnLeft ? 'left' : 'right' }}"
+                        @class([
+                            'flex flex-col-reverse items-start gap-12 md:grid md:items-end md:gap-[clamp(3rem,8vw,8rem)]',
+                            'md:grid-cols-[minmax(0,1fr)_13rem]' => ! $hasPortraitOnLeft,
+                            'md:grid-cols-[13rem_minmax(0,1fr)]' => $hasPortraitOnLeft,
+                        ])
+                    >
+                        <div @class(['max-w-[62rem]', 'md:col-start-2 md:row-start-1' => $hasPortraitOnLeft])>
                             <div data-reveal>
                                 <h1 id="hero-title" class="text-[clamp(4rem,20vw,6.5rem)] font-black leading-[0.78] tracking-[-0.09em] md:text-[clamp(5rem,12vw,10rem)]">
                                     {{ $siteSetting?->hero_heading ?: 'Portfolio' }}
@@ -150,7 +168,7 @@
                         </div>
 
                         @if (filled($siteSetting?->profile_image))
-                            <div class="group shrink-0" data-reveal>
+                            <div @class(['group shrink-0', 'md:col-start-1 md:row-start-1' => $hasPortraitOnLeft]) data-reveal>
                                 <x-responsive-image
                                     :src="$siteSetting->profile_image"
                                     :webp-sources="$profileImage['webpSources'] ?? []"
@@ -160,6 +178,7 @@
                                     :height="$profileImage['height'] ?? 1"
                                     loading="eager"
                                     fetchpriority="high"
+                                    data-appearance-surface
                                     class="h-44 w-36 object-cover grayscale outline-1 outline-ink shadow-[0.75rem_0.75rem_0_var(--color-brand)] transition duration-300 group-hover:-translate-x-1 group-hover:-translate-y-1 group-hover:shadow-[1rem_1rem_0_var(--color-brand)] md:h-68 md:w-52"
                                 />
                             </div>
@@ -168,7 +187,7 @@
                 </section>
 
                 <section id="about" data-observed-section class="scroll-mt-18 border-t border-ink px-6 py-20 md:px-12 md:py-32 lg:px-24" aria-labelledby="about-title">
-                    <div class="mx-auto max-w-[74rem]">
+                    <div class="mx-auto max-w-[var(--portfolio-reading-width)]">
                         <div class="mb-12 grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 md:mb-20 md:grid-cols-[3rem_auto_minmax(2rem,1fr)] md:gap-6">
                             <span class="text-xs font-extrabold tracking-[0.12em] text-brand" aria-hidden="true">01 /</span>
                             <h2 id="about-title" class="shrink-0 text-[clamp(3rem,7vw,5.5rem)] font-black tracking-[-0.07em]">About<span class="text-brand">.</span></h2>
@@ -219,7 +238,7 @@
                 </section>
 
                 <section id="projects" data-observed-section class="scroll-mt-18 border-t border-ink px-6 py-20 md:px-12 md:py-32 lg:px-24" aria-labelledby="projects-title">
-                    <div class="mx-auto max-w-7xl">
+                    <div class="mx-auto max-w-[var(--portfolio-page-width)]">
                         <div class="mb-12 grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 md:mb-20 md:grid-cols-[3rem_auto_minmax(2rem,1fr)] md:gap-6">
                             <span class="text-xs font-extrabold tracking-[0.12em] text-brand" aria-hidden="true">02 /</span>
                             <h2 id="projects-title" class="shrink-0 text-[clamp(3rem,7vw,5.5rem)] font-black tracking-[-0.07em]">Projects<span class="text-brand">.</span></h2>
@@ -230,14 +249,15 @@
                             @foreach ($projects as $project)
                                 @php
                                     $projectImage = $seededImages[$project->image] ?? null;
+                                    $projectImageOnRight = $appearance['project_layout'] === 'alternating' && $loop->even;
                                 @endphp
 
                                 <article
                                     id="project-{{ $project->id }}"
                                     @class([
                                         'relative grid min-w-0 scroll-mt-18 gap-6 border-t border-ink pt-12 md:items-center md:gap-[clamp(3rem,7vw,6rem)]',
-                                        'md:grid-cols-[minmax(20rem,1.35fr)_minmax(16rem,0.65fr)]' => $loop->odd,
-                                        'md:grid-cols-[minmax(16rem,0.65fr)_minmax(20rem,1.35fr)]' => $loop->even,
+                                        'md:grid-cols-[minmax(20rem,1.35fr)_minmax(16rem,0.65fr)]' => ! $projectImageOnRight,
+                                        'md:grid-cols-[minmax(16rem,0.65fr)_minmax(20rem,1.35fr)]' => $projectImageOnRight,
                                     ])
                                     data-reveal
                                     data-analytics-hover="project:{{ $project->id }}"
@@ -248,12 +268,14 @@
                                         data-dialog-open="project-dialog-{{ $project->id }}"
                                         data-analytics-event="project_opened"
                                         data-analytics-target="project:{{ $project->id }}"
+                                        data-project-media-position="{{ $projectImageOnRight ? 'right' : 'left' }}"
                                         aria-haspopup="dialog"
                                         aria-controls="project-dialog-{{ $project->id }}"
                                         @class([
                                             'group relative block aspect-video w-full overflow-hidden border border-ink bg-panel text-left shadow-[0.5rem_0.5rem_0_var(--color-brand)] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-canvas md:shadow-[0.75rem_0.75rem_0_var(--color-brand)]',
-                                            'md:col-start-2' => $loop->even,
+                                            'md:col-start-2' => $projectImageOnRight,
                                         ])
+                                        data-appearance-surface
                                     >
                                         <x-responsive-image
                                             :src="$project->image"
@@ -269,7 +291,7 @@
                                         <span class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 to-transparent px-4 pb-3 pt-12 text-sm font-medium opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">View project details</span>
                                     </button>
 
-                                    <div @class(['md:col-start-1 md:row-start-1' => $loop->even])>
+                                    <div @class(['md:col-start-1 md:row-start-1' => $projectImageOnRight])>
                                         <div class="flex min-w-0 items-center gap-3">
                                             <h3 class="min-w-0 text-[clamp(1.75rem,3vw,2.5rem)] font-black tracking-[-0.05em]">{{ $project->title }}</h3>
                                             <div class="h-px min-w-4 grow bg-ink/30" aria-hidden="true"></div>
@@ -376,7 +398,7 @@
                 </section>
 
                 <section id="experience" data-observed-section class="scroll-mt-18 border-t border-ink px-6 py-20 md:px-12 md:py-32 lg:px-24" aria-labelledby="experience-title">
-                    <div class="mx-auto max-w-[74rem]">
+                    <div class="mx-auto max-w-[var(--portfolio-reading-width)]">
                         <div class="mb-12 grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 md:mb-20 md:grid-cols-[3rem_auto_minmax(2rem,1fr)] md:gap-6">
                             <span class="text-xs font-extrabold tracking-[0.12em] text-brand" aria-hidden="true">03 /</span>
                             <h2 id="experience-title" class="shrink-0 text-[clamp(3rem,7vw,5.5rem)] font-black tracking-[-0.07em]">Experience<span class="text-brand">.</span></h2>
@@ -435,7 +457,7 @@
                 </section>
 
                 <section id="contact" data-observed-section class="scroll-mt-18 border-t border-ink bg-brand px-6 py-20 text-canvas md:px-12 md:py-32 lg:px-24" aria-labelledby="contact-title">
-                    <div class="mx-auto max-w-[74rem]" data-reveal>
+                    <div class="mx-auto max-w-[var(--portfolio-reading-width)]" data-reveal>
                         <p class="mb-8 text-xs font-extrabold uppercase tracking-[0.12em]" aria-hidden="true">04 / Contact</p>
                         <h2 id="contact-title" class="text-[clamp(4rem,20vw,7rem)] font-black leading-[0.78] tracking-[-0.09em] md:text-[clamp(5rem,13vw,11rem)]">Contact.</h2>
 

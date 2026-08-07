@@ -36,6 +36,7 @@ class SiteSettingFactory extends Factory
                 'label' => 'GitHub',
                 'url' => fake()->url(),
             ]],
+            'appearance' => SiteSetting::DEFAULT_APPEARANCE,
         ];
     }
 }

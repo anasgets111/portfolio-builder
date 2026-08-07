@@ -32,6 +32,62 @@ it('renders the generic seeded portfolio content', function () {
         ->assertSee('Invite visitors to get in touch.');
 });
 
+it('renders validated appearance colors and layout choices', function () {
+    SiteSetting::factory()->create([
+        'appearance' => [
+            ...SiteSetting::DEFAULT_APPEARANCE,
+            'colors' => [
+                'canvas' => '#fffaf3',
+                'panel' => '#f1e8dc',
+                'ink' => '#231f20',
+                'ink_muted' => '#5f574f',
+                'brand' => '#8a2c5f',
+                'brand_soft' => '#6d214d',
+            ],
+            'font' => 'system',
+            'color_scheme' => 'light',
+            'page_width' => 'wide',
+            'corner_style' => 'soft',
+            'hero_layout' => 'portrait_left',
+            'project_layout' => 'media_left',
+            'motion' => 'off',
+        ],
+    ]);
+    Project::factory()->published()->count(2)->create();
+
+    $response = $this->get(route('home'));
+
+    $response
+        ->assertSuccessful()
+        ->assertSee('data-color-scheme="light"', false)
+        ->assertSee('data-motion="off"', false)
+        ->assertSee('data-hero-portrait="left"', false)
+        ->assertSee('--color-canvas: #fffaf3', false)
+        ->assertSee('--portfolio-page-width: 96rem', false)
+        ->assertSee('--portfolio-surface-radius: 1rem', false)
+        ->assertSee('data-project-media-position="left"', false)
+        ->assertDontSee('data-project-media-position="right"', false);
+});
+
+it('does not render unsafe appearance values from storage', function () {
+    SiteSetting::factory()->create([
+        'appearance' => [
+            ...SiteSetting::DEFAULT_APPEARANCE,
+            'colors' => [
+                ...SiteSetting::DEFAULT_APPEARANCE['colors'],
+                'canvas' => '#fff";background:url(https://example.com/tracker)',
+            ],
+            'font' => 'url(https://example.com/font.woff2)',
+        ],
+    ]);
+
+    $this->get(route('home'))
+        ->assertSuccessful()
+        ->assertSee('--color-canvas: #1e1e2e', false)
+        ->assertDontSee('example.com/tracker')
+        ->assertDontSee('example.com/font.woff2');
+});
+
 it('renders generic placeholder images with stable dimensions', function () {
     $this->seed(DatabaseSeeder::class);
 

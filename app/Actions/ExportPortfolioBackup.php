@@ -39,6 +39,7 @@ class ExportPortfolioBackup
         'og_image',
         'twitter_handle',
         'social_links',
+        'appearance',
     ];
 
     public const array PROJECT_FIELDS = [
