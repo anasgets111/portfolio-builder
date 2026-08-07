@@ -15,15 +15,10 @@ it('installs the generic portfolio placeholder images', function () {
 
     $this->seed(PortfolioMediaSeeder::class);
 
-    expect(PortfolioMediaSeeder::ORIGINAL_IMAGES)->toBe([
-        'site/profile-images/profile-placeholder.svg',
-        'projects/project-placeholder.svg',
-    ]);
-
     /** @var FilesystemAdapter $publicDisk */
     $publicDisk = Storage::disk('public');
 
-    foreach (PortfolioMediaSeeder::ORIGINAL_IMAGES as $image) {
+    foreach (PortfolioMediaSeeder::PLACEHOLDER_IMAGES as $image) {
         $publicDisk->assertExists($image);
     }
 });

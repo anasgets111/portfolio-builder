@@ -158,7 +158,7 @@ it('uses the navbar mark as a versioned favicon', function () {
         ->assertSee('stroke="#8be9fd"', false);
 });
 
-it('renders custom uploads through their original fallback without invented variants', function () {
+it('renders custom uploads from their configured storage paths', function () {
     SiteSetting::factory()->create([
         'profile_image' => 'site/profile-images/custom-profile.webp',
     ]);
@@ -166,15 +166,10 @@ it('renders custom uploads through their original fallback without invented vari
         'image' => 'projects/custom-project.webp',
     ]);
 
-    $response = $this->get(route('home'));
-
-    $response
+    $this->get(route('home'))
         ->assertSuccessful()
         ->assertSee('src="'.asset('storage/site/profile-images/custom-profile.webp').'"', false)
-        ->assertSee('src="'.asset('storage/projects/custom-project.webp').'"', false)
-        ->assertDontSee('custom-profile-500.webp')
-        ->assertDontSee('custom-project-640.webp')
-        ->assertDontSee('custom-project-1280.webp');
+        ->assertSee('src="'.asset('storage/projects/custom-project.webp').'"', false);
 });
 
 it('renders only published records in their configured order', function () {

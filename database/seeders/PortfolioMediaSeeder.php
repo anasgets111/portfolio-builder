@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 class PortfolioMediaSeeder extends Seeder
 {
     /** @var list<string> */
-    public const ORIGINAL_IMAGES = [
+    public const PLACEHOLDER_IMAGES = [
         'site/profile-images/profile-placeholder.svg',
         'projects/project-placeholder.svg',
     ];
@@ -19,7 +19,7 @@ class PortfolioMediaSeeder extends Seeder
      */
     public function run(): void
     {
-        foreach (self::ORIGINAL_IMAGES as $image) {
+        foreach (self::PLACEHOLDER_IMAGES as $image) {
             if (Storage::disk('public')->exists($image)) {
                 continue;
             }

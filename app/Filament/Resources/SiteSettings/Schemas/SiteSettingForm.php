@@ -365,21 +365,7 @@ class SiteSettingForm
     private static function socialLinkUrlRule(): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail): void {
-            if (! is_string($value)) {
-                $fail('The :attribute must be a valid web, email, or telephone link.');
-
-                return;
-            }
-
-            $isWebUrl = Str::startsWith($value, ['http://', 'https://'])
-                && Str::isUrl($value, ['http', 'https']);
-            $isEmailUrl = Str::startsWith($value, 'mailto:')
-                && filter_var(Str::after($value, 'mailto:'), FILTER_VALIDATE_EMAIL) !== false;
-            $telephone = Str::after($value, 'tel:');
-            $isTelephoneUrl = Str::startsWith($value, 'tel:')
-                && preg_match('/^\+?[0-9][0-9(). -]*$/', $telephone) === 1;
-
-            if (! $isWebUrl && ! $isEmailUrl && ! $isTelephoneUrl) {
+            if (! SiteSetting::isSafeSocialLinkUrl($value)) {
                 $fail('The :attribute must be a valid web, email, or telephone link.');
             }
         };

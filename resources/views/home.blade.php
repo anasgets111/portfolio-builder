@@ -1,20 +1,18 @@
 @php
     $seededImages = [
-        'site/profile-images/profile-placeholder.svg' => [
-            'width' => 960,
-            'height' => 960,
-            'webpSources' => [],
-        ],
-        'projects/project-placeholder.svg' => [
-            'width' => 1600,
-            'height' => 900,
-            'webpSources' => [],
-        ],
+        'site/profile-images/profile-placeholder.svg' => ['width' => 960, 'height' => 960],
+        'projects/project-placeholder.svg' => ['width' => 1600, 'height' => 900],
     ];
 
     $profileImage = is_string($siteSetting?->profile_image)
         ? ($seededImages[$siteSetting->profile_image] ?? null)
         : null;
+
+    $title = $metadata->title();
+    $description = $metadata->description();
+    $canonicalUrl = $metadata->canonicalUrl();
+    $openGraphImage = $metadata->openGraphImage();
+    $structuredData = $metadata->structuredData();
 
     $hasScrollingSkills = $skills->count() > 14;
     $hasEmailSocialLink = collect($siteSetting?->social_links ?? [])
@@ -36,37 +34,37 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ $metadata->title() }}</title>
+        <title>{{ $title }}</title>
 
-        @if (filled($metadata->description()))
-            <meta name="description" content="{{ $metadata->description() }}">
+        @if (filled($description))
+            <meta name="description" content="{{ $description }}">
         @endif
 
         <meta name="robots" content="{{ $metadata->robotsDirective() }}">
 
-        @if (filled($metadata->canonicalUrl()))
-            <link rel="canonical" href="{{ $metadata->canonicalUrl() }}">
+        @if (filled($canonicalUrl))
+            <link rel="canonical" href="{{ $canonicalUrl }}">
         @endif
 
-        @if ($openGraphImage = $metadata->openGraphImage())
-            <meta property="og:title" content="{{ $metadata->title() }}">
-            @if (filled($metadata->description()))
-                <meta property="og:description" content="{{ $metadata->description() }}">
+        @if ($openGraphImage)
+            <meta property="og:title" content="{{ $title }}">
+            @if (filled($description))
+                <meta property="og:description" content="{{ $description }}">
             @endif
             <meta property="og:type" content="website">
             <meta property="og:site_name" content="{{ $metadata->siteName() }}">
             <meta property="og:locale" content="{{ $metadata->openGraphLocale() }}">
-            @if (filled($metadata->canonicalUrl()))
-                <meta property="og:url" content="{{ $metadata->canonicalUrl() }}">
+            @if (filled($canonicalUrl))
+                <meta property="og:url" content="{{ $canonicalUrl }}">
             @endif
             <meta property="og:image" content="{{ $openGraphImage['url'] }}">
             <meta property="og:image:alt" content="{{ $openGraphImage['alt'] }}">
         @endif
 
         <meta name="twitter:card" content="{{ $openGraphImage ? 'summary_large_image' : 'summary' }}">
-        <meta name="twitter:title" content="{{ $metadata->title() }}">
-        @if (filled($metadata->description()))
-            <meta name="twitter:description" content="{{ $metadata->description() }}">
+        <meta name="twitter:title" content="{{ $title }}">
+        @if (filled($description))
+            <meta name="twitter:description" content="{{ $description }}">
         @endif
         @if (filled($metadata->twitterHandle()))
             <meta name="twitter:creator" content="{{ $metadata->twitterHandle() }}">
@@ -76,7 +74,7 @@
             <meta name="twitter:image:alt" content="{{ $openGraphImage['alt'] }}">
         @endif
 
-        @if ($structuredData = $metadata->structuredData())
+        @if ($structuredData)
             <script type="application/ld+json">@json($structuredData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)</script>
         @endif
 
@@ -167,10 +165,8 @@
 
                         @if (filled($siteSetting?->profile_image))
                             <div @class(['group shrink-0', 'md:col-start-1 md:row-start-1' => $hasPortraitOnLeft]) data-reveal>
-                                <x-responsive-image
+                                <x-portfolio-image
                                     :src="$siteSetting->profile_image"
-                                    :webp-sources="$profileImage['webpSources'] ?? []"
-                                    sizes="(min-width: 768px) 208px, 144px"
                                     :alt="$siteSetting->name.' — '.$siteSetting->professional_title"
                                     :width="$profileImage['width'] ?? 1"
                                     :height="$profileImage['height'] ?? 1"
@@ -275,15 +271,11 @@
                                         ])
                                         data-appearance-surface
                                     >
-                                        <x-responsive-image
+                                        <x-portfolio-image
                                             :src="$project->image"
-                                            :webp-sources="$projectImage['webpSources'] ?? []"
-                                            sizes="(min-width: 1280px) 800px, (min-width: 768px) 62vw, calc(100vw - 3rem)"
                                             alt="Screenshot of the {{ $project->title }} project"
                                             :width="$projectImage['width'] ?? 16"
                                             :height="$projectImage['height'] ?? 9"
-                                            loading="lazy"
-                                            picture-class="block size-full"
                                             class="size-full object-cover object-top transition duration-300 group-hover:scale-105"
                                         />
                                         <span class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 to-transparent px-4 pb-3 pt-12 text-sm font-medium opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">View project details</span>
@@ -325,15 +317,11 @@
                                                 <x-fas-xmark class="size-6" aria-hidden="true" />
                                             </button>
 
-                                            <x-responsive-image
+                                            <x-portfolio-image
                                                 :src="$project->image"
-                                                :webp-sources="$projectImage['webpSources'] ?? []"
-                                                sizes="(min-width: 1056px) 1024px, calc(100vw - 2rem)"
                                                 alt="Detailed screenshot of the {{ $project->title }} project"
                                                 :width="$projectImage['width'] ?? 16"
                                                 :height="$projectImage['height'] ?? 9"
-                                                loading="lazy"
-                                                picture-class="block w-full"
                                                 class="aspect-video w-full object-cover object-top"
                                             />
 

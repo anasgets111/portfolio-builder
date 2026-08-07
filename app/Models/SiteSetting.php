@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -343,7 +344,30 @@ class SiteSetting extends Model
             }
         }
 
-        return array_values(array_unique($failures));
+        return $failures;
+    }
+
+    public static function isWebUrl(string $url): bool
+    {
+        return Str::startsWith($url, ['http://', 'https://'])
+            && Str::isUrl($url, ['http', 'https']);
+    }
+
+    /**
+     * Determine whether a social link points at an approved web, email, or telephone target.
+     */
+    public static function isSafeSocialLinkUrl(mixed $url): bool
+    {
+        if (! is_string($url)) {
+            return false;
+        }
+
+        $isEmailUrl = Str::startsWith($url, 'mailto:')
+            && filter_var(Str::after($url, 'mailto:'), FILTER_VALIDATE_EMAIL) !== false;
+        $isTelephoneUrl = Str::startsWith($url, 'tel:')
+            && preg_match('/^\+?[0-9][0-9(). -]*$/', Str::after($url, 'tel:')) === 1;
+
+        return self::isWebUrl($url) || $isEmailUrl || $isTelephoneUrl;
     }
 
     /** @param array<string, string> $options */
