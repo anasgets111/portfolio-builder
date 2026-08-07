@@ -6,6 +6,7 @@ use App\Models\Experience;
 use App\Models\Project;
 use App\Models\SiteSetting;
 use App\Models\Skill;
+use App\Support\PortfolioMetadata;
 use Illuminate\Contracts\View\View;
 
 class HomeController extends Controller
@@ -15,8 +16,11 @@ class HomeController extends Controller
      */
     public function __invoke(): View
     {
+        $siteSetting = SiteSetting::current();
+
         return view('home', [
-            'siteSetting' => SiteSetting::current(),
+            'siteSetting' => $siteSetting,
+            'metadata' => new PortfolioMetadata($siteSetting),
             'projects' => Project::query()
                 ->published()
                 ->ordered()

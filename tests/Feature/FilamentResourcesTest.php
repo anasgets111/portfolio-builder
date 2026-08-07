@@ -143,7 +143,9 @@ it('edits but cannot create or delete the singleton site settings record', funct
     Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
         ->fillForm([
             'name' => 'Updated Name',
-            'seo_keywords' => ['Laravel', 'Portfolio'],
+            'site_url' => 'https://portfolio.example.com/',
+            'site_locale' => 'en-GB',
+            'is_indexable' => true,
             'social_links' => [[
                 'platform' => 'GitHub',
                 'label' => 'GitHub',
@@ -154,10 +156,49 @@ it('edits but cannot create or delete the singleton site settings record', funct
         ->assertHasNoFormErrors();
 
     expect($siteSetting->refresh()->name)->toBe('Updated Name')
-        ->and($siteSetting->seo_keywords)->toBe(['Laravel', 'Portfolio'])
+        ->and($siteSetting->site_url)->toBe('https://portfolio.example.com')
+        ->and($siteSetting->site_locale)->toBe('en-GB')
+        ->and($siteSetting->is_indexable)->toBeTrue()
         ->and(SiteSettingResource::canCreate())->toBeFalse()
         ->and(SiteSettingResource::canDelete($siteSetting))->toBeFalse()
         ->and(SiteSettingResource::canDeleteAny())->toBeFalse();
+});
+
+it('validates generic search settings in the site settings editor', function () {
+    $siteSetting = SiteSetting::factory()->create([
+        'site_url' => null,
+        'is_indexable' => false,
+    ]);
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->assertSee('Metadata preview')
+        ->fillForm([
+            'is_indexable' => true,
+            'site_url' => 'https://portfolio.example.com/projects?draft=1',
+            'site_locale' => 'not a locale',
+            'twitter_handle' => '@invalid-handle',
+        ])
+        ->call('save')
+        ->assertHasFormErrors(['site_url', 'site_locale', 'twitter_handle']);
+});
+
+it('requires a social preview image with a wide sharing ratio', function () {
+    Storage::fake('public');
+    $siteSetting = SiteSetting::factory()->create(['og_image' => null]);
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm([
+            'og_image' => UploadedFile::fake()->image('square.png', 800, 800),
+        ])
+        ->call('save')
+        ->assertHasFormErrors(['og_image']);
+
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm([
+            'og_image' => UploadedFile::fake()->image('social.png', 1200, 630),
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
 });
 
 it('links site settings navigation directly to its editor', function () {

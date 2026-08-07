@@ -27,9 +27,10 @@ return new class extends Migration
             $table->string('whatsapp_number')->nullable();
             $table->string('resume_file')->nullable();
             $table->text('site_url')->nullable();
+            $table->string('site_locale', 35)->default('en');
+            $table->boolean('is_indexable')->default(false);
             $table->string('seo_title')->nullable();
             $table->text('seo_description')->nullable();
-            $table->json('seo_keywords')->nullable();
             $table->string('og_image')->nullable();
             $table->string('twitter_handle')->nullable();
             $table->json('social_links')->nullable();

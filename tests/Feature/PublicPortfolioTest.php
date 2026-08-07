@@ -294,7 +294,7 @@ it('renders configured project actions', function () {
         ->assertSee('Live project');
 });
 
-it('omits unavailable canonical and open graph metadata', function () {
+it('omits unavailable canonical and social image metadata', function () {
     SiteSetting::factory()->create([
         'site_url' => null,
         'og_image' => null,
@@ -309,17 +309,68 @@ it('omits unavailable canonical and open graph metadata', function () {
 
 it('renders configured canonical and open graph metadata', function () {
     SiteSetting::factory()->create([
-        'site_url' => 'https://portfolio.example.com',
+        'name' => 'Portfolio Owner',
+        'professional_title' => 'Product Engineer',
+        'hero_description' => 'A fallback description from the public portfolio introduction.',
+        'site_url' => 'https://portfolio.example.com/',
+        'site_locale' => 'en-GB',
+        'is_indexable' => true,
+        'seo_title' => null,
+        'seo_description' => null,
         'og_image' => 'site/seo/open-graph.png',
+        'social_links' => [
+            ['platform' => 'GitHub', 'label' => 'GitHub', 'url' => 'https://github.com/example'],
+            ['platform' => 'Email', 'label' => 'Email', 'url' => 'mailto:hello@example.com'],
+        ],
     ]);
 
     $this->get(route('home'))
         ->assertSuccessful()
+        ->assertSee('lang="en-GB"', false)
+        ->assertSee('<title>Portfolio Owner</title>', false)
+        ->assertSee('name="description" content="A fallback description from the public portfolio introduction."', false)
+        ->assertSee('name="robots" content="index, follow"', false)
         ->assertSee('<link rel="canonical" href="https://portfolio.example.com">', false)
-        ->assertSee('property="og:title"', false)
+        ->assertSee('property="og:title" content="Portfolio Owner"', false)
         ->assertSee('property="og:url" content="https://portfolio.example.com"', false)
-        ->assertSee('property="og:image" content="'.asset('storage/site/seo/open-graph.png').'"', false)
-        ->assertSee('name="twitter:image" content="'.asset('storage/site/seo/open-graph.png').'"', false);
+        ->assertSee('property="og:site_name" content="Portfolio Owner"', false)
+        ->assertSee('property="og:locale" content="en_GB"', false)
+        ->assertSee('property="og:image" content="https://portfolio.example.com/storage/site/seo/open-graph.png"', false)
+        ->assertSee('name="twitter:image" content="https://portfolio.example.com/storage/site/seo/open-graph.png"', false)
+        ->assertSee('name="twitter:image:alt" content="Portfolio Owner portfolio preview"', false)
+        ->assertSee('"@type":"WebSite"', false)
+        ->assertSee('"@type":"ProfilePage"', false)
+        ->assertSee('"@type":"Person"', false)
+        ->assertSee('"sameAs":["https://github.com/example"]', false);
+});
+
+it('protects unfinished portfolios from indexing', function () {
+    SiteSetting::factory()->create([
+        'name' => 'Draft Portfolio',
+        'seo_title' => null,
+        'site_url' => 'https://portfolio.example.com',
+        'is_indexable' => false,
+        'og_image' => null,
+    ]);
+
+    $this->get(route('home'))
+        ->assertSuccessful()
+        ->assertSee('name="robots" content="noindex, nofollow"', false)
+        ->assertSee('name="twitter:card" content="summary"', false);
+
+    $this->get(route('sitemap'))->assertNotFound();
+});
+
+it('publishes a sitemap for indexable portfolios', function () {
+    SiteSetting::factory()->create([
+        'site_url' => 'https://portfolio.example.com/',
+        'is_indexable' => true,
+    ]);
+
+    $this->get(route('sitemap'))
+        ->assertSuccessful()
+        ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
+        ->assertSee('<loc>https://portfolio.example.com</loc>', false);
 });
 
 it('renders the configured resume and social links', function () {

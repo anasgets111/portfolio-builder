@@ -3,15 +3,16 @@
 namespace App\Filament\Resources\SiteSettings\Schemas;
 
 use App\Models\SiteSetting;
+use App\Support\PortfolioMetadata;
 use Closure;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
@@ -237,24 +238,89 @@ class SiteSettingForm
                         Tab::make('SEO & Sharing')
                             ->icon(Heroicon::OutlinedMagnifyingGlass)
                             ->schema([
-                                Section::make('Search and sharing')
-                                    ->description('Metadata used by search engines and social previews.')
+                                Grid::make(5)
                                     ->schema([
-                                        TextInput::make('site_url')->url()->maxLength(2048),
-                                        TextInput::make('seo_title')->maxLength(255),
-                                        Textarea::make('seo_description')->rows(4)->columnSpanFull(),
-                                        TagsInput::make('seo_keywords')->columnSpanFull(),
-                                        FileUpload::make('og_image')
-                                            ->image()
-                                            ->disk('public')
-                                            ->directory('site/seo')
-                                            ->visibility('public')
-                                            ->maxSize(5120),
-                                        TextInput::make('twitter_handle')
-                                            ->prefix('@')
-                                            ->maxLength(255),
-                                    ])
-                                    ->columns(2),
+                                        Group::make([
+                                            Section::make('Publishing and indexing')
+                                                ->description('Control the public origin, language, and crawler access for this portfolio.')
+                                                ->schema([
+                                                    Toggle::make('is_indexable')
+                                                        ->label('Allow search engine indexing')
+                                                        ->helperText('Keep this off until the portfolio is deployed at its final production URL.')
+                                                        ->default(false)
+                                                        ->required()
+                                                        ->live(),
+                                                    TextInput::make('site_url')
+                                                        ->label('Production URL')
+                                                        ->placeholder('https://portfolio.example.com')
+                                                        ->helperText('The public origin used for canonical URLs, the sitemap, and social images. Do not include a path, query, or fragment.')
+                                                        ->url()
+                                                        ->maxLength(2048)
+                                                        ->required(fn (Get $get): bool => (bool) $get('is_indexable'))
+                                                        ->rules([fn (): Closure => self::productionUrlRule()])
+                                                        ->dehydrateStateUsing(fn (?string $state): ?string => filled($state) ? rtrim(trim($state), '/') : null)
+                                                        ->live(debounce: 500),
+                                                    TextInput::make('site_locale')
+                                                        ->label('Site language')
+                                                        ->placeholder('en')
+                                                        ->helperText('Use a BCP 47 language tag such as en, en-GB, or ar-EG.')
+                                                        ->default(str_replace('_', '-', app()->getLocale()))
+                                                        ->required()
+                                                        ->regex('/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/')
+                                                        ->maxLength(35)
+                                                        ->live(debounce: 400),
+                                                ]),
+                                            Section::make('Search result')
+                                                ->description('Optional defaults for search results. Public content supplies sensible fallbacks when these are blank.')
+                                                ->schema([
+                                                    TextInput::make('seo_title')
+                                                        ->label('SEO title')
+                                                        ->helperText('Keep it concise and descriptive. Search engines may rewrite titles to match a query.')
+                                                        ->maxLength(255)
+                                                        ->live(debounce: 400),
+                                                    Textarea::make('seo_description')
+                                                        ->label('SEO description')
+                                                        ->helperText('Summarize the portfolio for potential visitors. The hero description is used when this is blank.')
+                                                        ->rows(4)
+                                                        ->live(debounce: 500),
+                                                ]),
+                                            Section::make('Social sharing')
+                                                ->description('Defaults used when the portfolio is shared on social and messaging platforms.')
+                                                ->schema([
+                                                    FileUpload::make('og_image')
+                                                        ->label('Social preview image')
+                                                        ->image()
+                                                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                                        ->disk('public')
+                                                        ->directory('site/seo')
+                                                        ->visibility('public')
+                                                        ->maxSize(5120)
+                                                        ->rule(Rule::dimensions()
+                                                            ->minWidth(600)
+                                                            ->minHeight(315)
+                                                            ->maxWidth(2560)
+                                                            ->maxHeight(1440)
+                                                            ->minRatio(1.8)
+                                                            ->maxRatio(2.0))
+                                                        ->helperText('JPEG, PNG, or WebP. Use approximately 1.91:1, ideally 1200 × 630 pixels. Maximum 5 MB.'),
+                                                    TextInput::make('twitter_handle')
+                                                        ->label('X / Twitter handle')
+                                                        ->prefix('@')
+                                                        ->helperText('Optional creator attribution. Enter the handle without @.')
+                                                        ->regex('/^[A-Za-z0-9_]{1,15}$/')
+                                                        ->maxLength(15)
+                                                        ->live(debounce: 400),
+                                                ]),
+                                        ])->columnSpan([
+                                            'default' => 1,
+                                            'xl' => 2,
+                                        ]),
+                                        View::make('filament.schemas.components.seo-preview')
+                                            ->columnSpan([
+                                                'default' => 1,
+                                                'xl' => 3,
+                                            ]),
+                                    ]),
                             ]),
                     ])
                     ->persistTabInQueryString('settings-tab')
@@ -320,6 +386,25 @@ class SiteSettingForm
 
             if (! $isWebUrl && ! $isEmailUrl && ! $isTelephoneUrl) {
                 $fail('The :attribute must be a valid web, email, or telephone link.');
+            }
+        };
+    }
+
+    private static function productionUrlRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            if (! is_string($value)) {
+                $fail('The :attribute must be a valid HTTP or HTTPS origin.');
+
+                return;
+            }
+
+            if (! PortfolioMetadata::isProductionOrigin($value)) {
+                $fail('The :attribute must contain only an HTTP or HTTPS origin, without a path, query, or fragment.');
             }
         };
     }

@@ -33,7 +33,7 @@
 
 <!DOCTYPE html>
 <html
-    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+    lang="{{ $metadata->locale() }}"
     class="bg-canvas"
     data-color-scheme="{{ $appearance['color_scheme'] }}"
     data-motion="{{ $appearance['motion'] }}"
@@ -43,41 +43,48 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>{{ $siteSetting?->seo_title ?: $siteSetting?->name ?: config('app.name') }}</title>
+        <title>{{ $metadata->title() }}</title>
 
-        @if (filled($siteSetting?->seo_description))
-            <meta name="description" content="{{ $siteSetting->seo_description }}">
+        @if (filled($metadata->description()))
+            <meta name="description" content="{{ $metadata->description() }}">
         @endif
 
-        @if (filled($siteSetting?->seo_keywords))
-            <meta name="keywords" content="{{ implode(', ', $siteSetting->seo_keywords) }}">
+        <meta name="robots" content="{{ $metadata->robotsDirective() }}">
+
+        @if (filled($metadata->canonicalUrl()))
+            <link rel="canonical" href="{{ $metadata->canonicalUrl() }}">
         @endif
 
-        @if (filled($siteSetting?->site_url))
-            <link rel="canonical" href="{{ $siteSetting->site_url }}">
-        @endif
-
-        @if (filled($siteSetting?->og_image))
-            <meta property="og:title" content="{{ $siteSetting->seo_title ?: $siteSetting->name }}">
-            <meta property="og:description" content="{{ $siteSetting->seo_description }}">
-            <meta property="og:type" content="website">
-            @if (filled($siteSetting->site_url))
-                <meta property="og:url" content="{{ $siteSetting->site_url }}">
+        @if ($openGraphImage = $metadata->openGraphImage())
+            <meta property="og:title" content="{{ $metadata->title() }}">
+            @if (filled($metadata->description()))
+                <meta property="og:description" content="{{ $metadata->description() }}">
             @endif
-            <meta property="og:image" content="{{ asset('storage/'.$siteSetting->og_image) }}">
-            <meta property="og:image:alt" content="{{ $siteSetting->name }} portfolio preview">
+            <meta property="og:type" content="website">
+            <meta property="og:site_name" content="{{ $metadata->siteName() }}">
+            <meta property="og:locale" content="{{ $metadata->openGraphLocale() }}">
+            @if (filled($metadata->canonicalUrl()))
+                <meta property="og:url" content="{{ $metadata->canonicalUrl() }}">
+            @endif
+            <meta property="og:image" content="{{ $openGraphImage['url'] }}">
+            <meta property="og:image:alt" content="{{ $openGraphImage['alt'] }}">
         @endif
 
-        <meta name="twitter:card" content="{{ filled($siteSetting?->og_image) ? 'summary_large_image' : 'summary' }}">
-        <meta name="twitter:title" content="{{ $siteSetting?->seo_title ?: $siteSetting?->name ?: config('app.name') }}">
-        @if (filled($siteSetting?->seo_description))
-            <meta name="twitter:description" content="{{ $siteSetting->seo_description }}">
+        <meta name="twitter:card" content="{{ $openGraphImage ? 'summary_large_image' : 'summary' }}">
+        <meta name="twitter:title" content="{{ $metadata->title() }}">
+        @if (filled($metadata->description()))
+            <meta name="twitter:description" content="{{ $metadata->description() }}">
         @endif
-        @if (filled($siteSetting?->twitter_handle))
-            <meta name="twitter:creator" content="{{ '@'.ltrim($siteSetting->twitter_handle, '@') }}">
+        @if (filled($metadata->twitterHandle()))
+            <meta name="twitter:creator" content="{{ $metadata->twitterHandle() }}">
         @endif
-        @if (filled($siteSetting?->og_image))
-            <meta name="twitter:image" content="{{ asset('storage/'.$siteSetting->og_image) }}">
+        @if ($openGraphImage)
+            <meta name="twitter:image" content="{{ $openGraphImage['url'] }}">
+            <meta name="twitter:image:alt" content="{{ $openGraphImage['alt'] }}">
+        @endif
+
+        @if ($structuredData = $metadata->structuredData())
+            <script type="application/ld+json">@json($structuredData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)</script>
         @endif
 
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">

@@ -22,9 +22,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $email
  * @property string|null $resume_file
  * @property string|null $site_url
+ * @property string $site_locale
+ * @property bool $is_indexable
  * @property string|null $seo_title
  * @property string|null $seo_description
- * @property array<int, string>|null $seo_keywords
  * @property string|null $og_image
  * @property string|null $twitter_handle
  * @property array<int, array{platform: string, label: string, url: string}>|null $social_links
@@ -47,9 +48,10 @@ use Illuminate\Support\Carbon;
     'email',
     'resume_file',
     'site_url',
+    'site_locale',
+    'is_indexable',
     'seo_title',
     'seo_description',
-    'seo_keywords',
     'og_image',
     'twitter_handle',
     'social_links',
@@ -251,6 +253,8 @@ class SiteSetting extends Model
     /** @var array<string, mixed> */
     protected $attributes = [
         'is_singleton' => true,
+        'site_locale' => 'en',
+        'is_indexable' => false,
     ];
 
     public static function current(): ?self
@@ -395,7 +399,7 @@ class SiteSetting extends Model
     {
         return [
             'is_singleton' => 'boolean',
-            'seo_keywords' => 'array',
+            'is_indexable' => 'boolean',
             'social_links' => 'array',
             'appearance' => 'array',
         ];
