@@ -7,6 +7,7 @@ use App\Models\Skill;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\PortfolioMediaSeeder;
 use Database\Seeders\SiteSettingSeeder;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
 it('installs the generic portfolio placeholder images', function () {
@@ -19,8 +20,11 @@ it('installs the generic portfolio placeholder images', function () {
         'projects/project-placeholder.svg',
     ]);
 
+    /** @var FilesystemAdapter $publicDisk */
+    $publicDisk = Storage::disk('public');
+
     foreach (PortfolioMediaSeeder::ORIGINAL_IMAGES as $image) {
-        Storage::disk('public')->assertExists($image);
+        $publicDisk->assertExists($image);
     }
 });
 
@@ -140,6 +144,9 @@ it('resets profile and project images to generic placeholders when content is re
     expect($siteSetting->refresh()->profile_image)->toBe('site/profile-images/profile-placeholder.svg')
         ->and($project->refresh()->image)->toBe('projects/project-placeholder.svg');
 
-    Storage::disk('public')->assertExists($customProfileImage);
-    Storage::disk('public')->assertExists($customProjectImage);
+    /** @var FilesystemAdapter $publicDisk */
+    $publicDisk = Storage::disk('public');
+
+    $publicDisk->assertExists($customProfileImage);
+    $publicDisk->assertExists($customProjectImage);
 });

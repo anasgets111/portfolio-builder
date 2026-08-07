@@ -9,6 +9,7 @@ use App\Models\SiteSetting;
 use App\Models\Skill;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -98,12 +99,13 @@ it('exports portfolio records relationships and referenced media', function () {
         ->site_setting->site_locale->toBe('en-GB')
         ->site_setting->is_indexable->toBeTrue()
         ->projects->toHaveCount(1)
-        ->projects->{0}->title->toBe('Portable Project')
         ->experiences->toHaveCount(1)
-        ->experiences->{0}->project_keys->toBe([$manifest['projects'][0]['key']])
-        ->skills->{0}->name->toBe('Portable Skill')
         ->media->toHaveCount(3)
         ->not->toHaveKey('users');
+
+    expect($manifest['projects'][0]['title'])->toBe('Portable Project')
+        ->and($manifest['experiences'][0]['project_keys'])->toBe([$manifest['projects'][0]['key']])
+        ->and($manifest['skills'][0]['name'])->toBe('Portable Skill');
 
     expect($zip->getFromName('media/site/profile-images/profile.jpg'))->toBe($fixture['profile'])
         ->and($zip->getFromName('media/projects/portfolio.jpg'))->toBe($fixture['project'])
@@ -150,7 +152,10 @@ it('restores a backup into fresh portfolio records and media paths', function ()
         ->and($experience->projects()->sole()->is($project))->toBeTrue()
         ->and(Skill::query()->sole()->name)->toBe('Portable Skill');
 
-    Storage::disk('public')->assertExists([
+    /** @var FilesystemAdapter $publicDisk */
+    $publicDisk = Storage::disk('public');
+
+    $publicDisk->assertExists([
         $siteSetting->profile_image,
         $siteSetting->resume_file,
         $project->image,
