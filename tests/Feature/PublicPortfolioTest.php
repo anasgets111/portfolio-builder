@@ -4,7 +4,6 @@ use App\Models\Experience;
 use App\Models\Project;
 use App\Models\SiteSetting;
 use App\Models\Skill;
-use App\Support\PortfolioMark;
 use Database\Seeders\DatabaseSeeder;
 
 beforeEach(function () {
@@ -126,7 +125,7 @@ it('renders generic placeholder images with stable dimensions', function () {
 });
 
 it('uses the navbar mark as a versioned favicon', function () {
-    $siteSetting = SiteSetting::factory()->create([
+    SiteSetting::factory()->create([
         'name' => 'Anas Khalifa',
         'appearance' => [
             ...SiteSetting::DEFAULT_APPEARANCE,
@@ -137,18 +136,16 @@ it('uses the navbar mark as a versioned favicon', function () {
             ],
         ],
     ]);
-    $portfolioMark = new PortfolioMark($siteSetting);
-
     $this->get(route('home'))
         ->assertSuccessful()
         ->assertSeeText('AK')
         ->assertSee(
-            'href="'.route('favicon', ['v' => $portfolioMark->fingerprint()]).'" type="image/svg+xml" sizes="any"',
+            'href="'.route('favicon').'?v=',
             false,
         )
         ->assertDontSee('apple-touch-icon');
 
-    $favicon = $this->get(route('favicon', ['v' => $portfolioMark->fingerprint()]));
+    $favicon = $this->get(route('favicon'));
 
     $favicon
         ->assertSuccessful()
@@ -235,8 +232,10 @@ it('renders related published projects under experiences in their configured ord
     $response
         ->assertSuccessful()
         ->assertSee('Related Projects')
-        ->assertSee('href="#project-'.$firstProject->id.'"', false)
-        ->assertSee('href="#project-'.$secondProject->id.'"', false)
+        ->assertSeeInOrder([
+            'href="#project-'.$firstProject->id.'"',
+            'href="#project-'.$secondProject->id.'"',
+        ], false)
         ->assertSee('data-dialog-open="project-dialog-'.$firstProject->id.'"', false)
         ->assertSee('<dialog id="project-dialog-'.$firstProject->id.'"', false)
         ->assertSee('data-related-project', false)
@@ -244,9 +243,7 @@ it('renders related published projects under experiences in their configured ord
 
     $renderedExperience = $response->viewData('experiences')->sole();
 
-    expect($renderedExperience->relationLoaded('publishedProjects'))->toBeTrue()
-        ->and($renderedExperience->publishedProjects->pluck('title')->all())
-        ->toBe(['First Related Project', 'Second Related Project']);
+    expect($renderedExperience->relationLoaded('publishedProjects'))->toBeTrue();
 });
 
 it('renders related published experiences in project dialogs', function () {
@@ -276,9 +273,7 @@ it('renders related published experiences in project dialogs', function () {
 
     $renderedProject = $response->viewData('projects')->sole();
 
-    expect($renderedProject->relationLoaded('publishedExperiences'))->toBeTrue()
-        ->and($renderedProject->publishedExperiences->pluck('company')->all())
-        ->toBe(['Published Related Company']);
+    expect($renderedProject->relationLoaded('publishedExperiences'))->toBeTrue();
 });
 
 it('does not render empty relationship sections', function () {

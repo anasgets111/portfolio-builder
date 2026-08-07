@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\SiteSetting;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -200,7 +201,9 @@ final class PortfolioMetadata
             return null;
         }
 
-        $publicUrl = Storage::disk('public')->url($path);
+        /** @var FilesystemAdapter $publicDisk */
+        $publicDisk = Storage::disk('public');
+        $publicUrl = $publicDisk->url($path);
         $origin = self::configuredApplicationUrl();
 
         if ($origin === null) {
