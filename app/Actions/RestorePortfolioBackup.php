@@ -299,7 +299,7 @@ class RestorePortfolioBackup
         }
 
         foreach ($this->manifestRows($siteSetting['social_links'] ?? [], 'social_links') as $socialLink) {
-            if (! $this->isSafeSocialLink(Arr::string($socialLink, 'url'))) {
+            if (! SiteSetting::isSafeSocialLinkUrl(Arr::string($socialLink, 'url'))) {
                 throw new RuntimeException('The portfolio backup contains an unsafe social link.');
             }
         }
@@ -597,18 +597,5 @@ class RestorePortfolioBackup
         if (Str::startsWith($path, 'site/profile-images/') && ($width > 2000 || $height > 2000)) {
             throw new RuntimeException("The profile image exceeds the supported dimensions: {$path}");
         }
-    }
-
-    private function isSafeSocialLink(string $url): bool
-    {
-        $isWebUrl = Str::startsWith($url, ['http://', 'https://'])
-            && Str::isUrl($url, ['http', 'https']);
-        $isEmailUrl = Str::startsWith($url, 'mailto:')
-            && filter_var(Str::after($url, 'mailto:'), FILTER_VALIDATE_EMAIL) !== false;
-        $telephone = Str::after($url, 'tel:');
-        $isTelephoneUrl = Str::startsWith($url, 'tel:')
-            && preg_match('/^\+?[0-9][0-9(). -]*$/', $telephone) === 1;
-
-        return $isWebUrl || $isEmailUrl || $isTelephoneUrl;
     }
 }

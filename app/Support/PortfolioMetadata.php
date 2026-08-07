@@ -64,8 +64,7 @@ final class PortfolioMetadata
 
     private static function isApplicationOrigin(string $value): bool
     {
-        if (! Str::startsWith($value, ['http://', 'https://'])
-            || ! Str::isUrl($value, ['http', 'https'])) {
+        if (! SiteSetting::isWebUrl($value)) {
             return false;
         }
 
@@ -187,11 +186,8 @@ final class PortfolioMetadata
         $profiles = [];
 
         foreach ($socialLinks as $socialLink) {
-            $url = $socialLink['url'];
-
-            if (Str::startsWith($url, ['http://', 'https://'])
-                && Str::isUrl($url, ['http', 'https'])) {
-                $profiles[] = $url;
+            if (SiteSetting::isWebUrl($socialLink['url'])) {
+                $profiles[] = $socialLink['url'];
             }
         }
 
@@ -207,19 +203,15 @@ final class PortfolioMetadata
         $publicUrl = Storage::disk('public')->url($path);
         $origin = self::configuredApplicationUrl();
 
-        if ($origin !== null) {
-            $publicPath = Str::startsWith($publicUrl, ['http://', 'https://'])
-                ? parse_url($publicUrl, PHP_URL_PATH)
-                : $publicUrl;
-
-            return $origin.'/'.ltrim(is_string($publicPath) ? $publicPath : $publicUrl, '/');
+        if ($origin === null) {
+            return Str::startsWith($publicUrl, ['http://', 'https://'])
+                ? $publicUrl
+                : url($publicUrl);
         }
 
-        if (Str::startsWith($publicUrl, ['http://', 'https://'])) {
-            return $publicUrl;
-        }
+        $publicPath = parse_url($publicUrl, PHP_URL_PATH);
 
-        return url($publicUrl);
+        return $origin.'/'.ltrim(is_string($publicPath) ? $publicPath : $publicUrl, '/');
     }
 
     private function filledString(mixed $value): ?string

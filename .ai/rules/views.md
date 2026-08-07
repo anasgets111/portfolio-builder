@@ -25,3 +25,6 @@ Public portfolio views must omit project source buttons when source_url is null.
 
 ## APP_URL supersedes stored site URL guidance
 This rule supersedes earlier references to SiteSetting.site_url. The site_url field no longer exists. Treat config('app.url') as the only canonical origin, while keeping Open Graph and Twitter image tags conditional on an uploaded sharing image.
+
+## Public images render as a single plain img
+Supersedes the earlier "Responsive variants are optional" rule. Nothing in this project ever generated webp/srcset variants, so the picture/source machinery was removed. Use x-portfolio-image (formerly x-responsive-image), which emits one img from a public-disk path with explicit width/height for CLS. Seeded placeholder dimensions live in the $seededImages map in home.blade.php; Filament uploads fall back to the ratio hints at the call site. Do not reintroduce srcset/sizes without an actual variant pipeline.
