@@ -4,11 +4,13 @@ namespace App\Filament\Pages;
 
 use App\Actions\ExportPortfolioBackup;
 use App\Actions\RestorePortfolioBackup;
+use App\Models\SiteSetting;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Pages\Page;
 use Filament\Schemas\Concerns\RestrictsFileUploadsToSchemaComponents;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -44,10 +46,13 @@ class PortfolioBackups extends Page
                         return null;
                     }
 
+                    $firstName = Str::before(Str::slug(SiteSetting::current()?->name), '-');
+                    $filenamePrefix = $firstName === '' ? '' : $firstName.'-';
+
                     return response()
                         ->download(
                             $archivePath,
-                            'portfolio-backup-'.now()->format('Y-m-d-His').'.zip',
+                            $filenamePrefix.'portfolio-backup-'.now()->format('Y-m-d').'.zip',
                             ['Content-Type' => 'application/zip'],
                         )
                         ->deleteFileAfterSend(true);

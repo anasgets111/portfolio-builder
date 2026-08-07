@@ -11,6 +11,7 @@ use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -166,6 +167,24 @@ it('restores a backup into fresh portfolio records and media paths', function ()
         ->and(Storage::disk('public')->get($project->image))->toBe($fixture['project']);
 });
 
+it('restores experiences without project relationships', function () {
+    createPortfolioBackupFixture();
+    Experience::factory()->published()->create([
+        'company' => 'Independent Company',
+        'sort_order' => 20,
+    ]);
+
+    $archivePath = (new ExportPortfolioBackup)->handle();
+
+    (new RestorePortfolioBackup)->handle($archivePath);
+
+    $experience = Experience::query()
+        ->where('company', 'Independent Company')
+        ->sole();
+
+    expect($experience->projects)->toBeEmpty();
+});
+
 it('restores old backups without appearance using the current defaults', function () {
     $fixture = createPortfolioBackupFixture();
     $zip = new ZipArchive;
@@ -280,6 +299,26 @@ it('exposes backup actions only inside the authenticated admin panel', function 
     $this->actingAs($unverifiedUser)
         ->get('/admin/portfolio-backups')
         ->assertForbidden();
+});
+
+it('downloads backups using the portfolio owner first name', function () {
+    createPortfolioBackupFixture();
+    SiteSetting::query()->sole()->update(['name' => 'Test Owner']);
+    $administrator = User::factory()->create();
+
+    Carbon::setTestNow('2026-08-07 14:30:00');
+
+    try {
+        Livewire::actingAs($administrator)
+            ->test(PortfolioBackups::class)
+            ->callAction('downloadBackup')
+            ->assertFileDownloaded(
+                'test-portfolio-backup-2026-08-07.zip',
+                contentType: 'application/zip',
+            );
+    } finally {
+        Carbon::setTestNow();
+    }
 });
 
 it('restores an uploaded backup through the admin action', function () {
