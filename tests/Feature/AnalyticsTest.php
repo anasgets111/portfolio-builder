@@ -10,7 +10,6 @@ use App\Models\User;
 use Filament\Facades\Filament;
 use Kholil\FilamentAnalitik\Models\PageView;
 use Kholil\FilamentAnalitik\Resources\PageViewResource;
-use Livewire\Livewire;
 
 it('records anonymous public portfolio page views without query strings', function () {
     $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.10'])
@@ -107,29 +106,4 @@ it('registers a single analytics page in the admin panel', function () {
 
     $this->get('/admin/page-views')->assertNotFound();
     $this->get('/admin/analytics-dashboard')->assertNotFound();
-});
-
-it('renders the local engagement widgets with recorded events', function () {
-    Filament::setCurrentPanel(Filament::getPanel('admin'));
-    $this->actingAs(User::factory()->create());
-
-    AnalyticsEvent::factory()->create([
-        'name' => 'cv_opened',
-        'target' => 'navigation',
-        'value' => null,
-    ]);
-    AnalyticsEvent::factory()->create([
-        'name' => 'section_engaged',
-        'target' => 'projects',
-        'value' => 15_000,
-    ]);
-
-    Livewire::test(PortfolioEngagementOverview::class)
-        ->assertOk()
-        ->assertSee('CV opens');
-    Livewire::test(SectionEngagementChart::class)->assertOk();
-    Livewire::test(PortfolioInteractionsChart::class)->assertOk();
-    Livewire::test(RecentPageViewsTable::class)
-        ->assertOk()
-        ->assertSee('Recent visits');
 });

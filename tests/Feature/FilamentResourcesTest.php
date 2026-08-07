@@ -416,47 +416,38 @@ it('rejects invalid CV file types and oversized PDFs', function () {
         ->assertHasFormErrors(['resume_file']);
 });
 
-it('restricts project image types sizes and dimensions', function () {
+it('rejects project images that fail upload restrictions', function (UploadedFile $image) {
     Storage::fake('public');
 
-    $projectData = fn (UploadedFile $image): array => [
-        'title' => 'Restricted Project Image',
-        'summary' => 'A project image validation test.',
-        'body' => '<p>Project body.</p>',
-        'image' => $image,
-        'technologies' => ['Laravel'],
-        'sort_order' => 10,
-        'is_published' => true,
-    ];
+    Livewire::test(CreateProject::class)
+        ->fillForm([
+            'title' => 'Restricted Project Image',
+            'summary' => 'A project image validation test.',
+            'body' => '<p>Project body.</p>',
+            'image' => $image,
+            'technologies' => ['Laravel'],
+            'sort_order' => 10,
+            'is_published' => true,
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['image']);
+})->with([
+    'SVG files' => fn (): UploadedFile => UploadedFile::fake()->create('project.svg', 100, 'image/svg+xml'),
+    'files larger than 4 MB' => fn (): UploadedFile => UploadedFile::fake()->image('oversized-project.png', 1600, 900)->size(4097),
+    'images wider than 2560 pixels' => fn (): UploadedFile => UploadedFile::fake()->image('too-wide-project.png', 2561, 900),
+]);
 
-    $invalidImages = [
-        UploadedFile::fake()->create('project.svg', 100, 'image/svg+xml'),
-        UploadedFile::fake()->image('oversized-project.png', 1600, 900)->size(4097),
-        UploadedFile::fake()->image('too-wide-project.png', 2561, 900),
-    ];
-
-    foreach ($invalidImages as $invalidImage) {
-        Livewire::test(CreateProject::class)
-            ->fillForm($projectData($invalidImage))
-            ->call('create')
-            ->assertHasFormErrors(['image']);
-    }
-});
-
-it('restricts profile image types sizes and dimensions', function () {
+it('rejects profile images that fail upload restrictions', function (UploadedFile $image) {
     Storage::fake('public');
 
     $siteSetting = SiteSetting::factory()->create();
-    $invalidImages = [
-        UploadedFile::fake()->create('profile.svg', 100, 'image/svg+xml'),
-        UploadedFile::fake()->image('oversized-profile.png', 1000, 1000)->size(2049),
-        UploadedFile::fake()->image('too-wide-profile.png', 2001, 1000),
-    ];
 
-    foreach ($invalidImages as $invalidImage) {
-        Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
-            ->fillForm(['profile_image' => $invalidImage])
-            ->call('save')
-            ->assertHasFormErrors(['profile_image']);
-    }
-});
+    Livewire::test(EditSiteSetting::class, ['record' => $siteSetting->getRouteKey()])
+        ->fillForm(['profile_image' => $image])
+        ->call('save')
+        ->assertHasFormErrors(['profile_image']);
+})->with([
+    'SVG files' => fn (): UploadedFile => UploadedFile::fake()->create('profile.svg', 100, 'image/svg+xml'),
+    'files larger than 2 MB' => fn (): UploadedFile => UploadedFile::fake()->image('oversized-profile.png', 1000, 1000)->size(2049),
+    'images wider than 2000 pixels' => fn (): UploadedFile => UploadedFile::fake()->image('too-wide-profile.png', 2001, 1000),
+]);

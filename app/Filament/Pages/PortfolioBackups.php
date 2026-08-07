@@ -46,7 +46,11 @@ class PortfolioBackups extends Page
                         return null;
                     }
 
-                    $firstName = Str::before(Str::slug(SiteSetting::current()?->name), '-');
+                    $siteSetting = SiteSetting::current();
+                    $ownerName = $siteSetting?->name;
+                    $firstName = $ownerName === null
+                        ? ''
+                        : Str::before(Str::slug($ownerName), '-');
                     $filenamePrefix = $firstName === '' ? '' : $firstName.'-';
 
                     return response()
