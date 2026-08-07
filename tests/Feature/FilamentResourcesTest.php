@@ -33,6 +33,12 @@ it('allows verified users to access the panel and rejects unverified users', fun
     $this->get('/admin')->assertForbidden();
 });
 
+it('uses the dynamic portfolio favicon in the panel', function () {
+    $this->get('/admin')
+        ->assertSuccessful()
+        ->assertSee('href="'.route('favicon').'?v=', false);
+});
+
 it('lists the project experience and skill resources', function () {
     $projects = Project::factory()->count(2)->create();
     $experiences = Experience::factory()->count(2)->create();

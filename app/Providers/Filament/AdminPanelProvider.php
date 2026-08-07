@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\InitialAdminLogin;
 use App\Filament\Pages\Auth\InitialAdminRegistration;
+use App\Models\SiteSetting;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -33,6 +34,9 @@ class AdminPanelProvider extends PanelProvider
             ->registration(InitialAdminRegistration::class)
             ->registrationRouteSlug('setup')
             ->brandName('Portfolio CMS')
+            ->favicon(fn (): string => route('favicon', [
+                'v' => SiteSetting::current()?->updated_at?->getTimestamp() ?? 0,
+            ]))
             ->maxContentWidth(Width::Full)
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
