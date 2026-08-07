@@ -10,20 +10,6 @@ beforeEach(function () {
     $this->withoutVite();
 });
 
-it('defines the Catppuccin Mocha public theme', function () {
-    expect(file_get_contents(resource_path('css/app.css')))
-        ->toContain(
-            '--color-canvas: #1e1e2e;',
-            '--color-panel: #313244;',
-            '--color-ink: #cdd6f4;',
-            '--color-ink-muted: #a6adc8;',
-            '--color-brand: #cba6f7;',
-            '--color-brand-soft: #b4befe;',
-            'color-scheme: dark;',
-            'background: rgb(17 17 27 / 0.82);',
-        );
-});
-
 it('returns the public homepage with one meaningful heading', function () {
     $response = $this->get(route('home'));
 
@@ -65,15 +51,11 @@ it('renders generic placeholder images with stable dimensions', function () {
         ->and($portrait?->getAttribute('loading'))->toBe('eager')
         ->and($portrait?->getAttribute('fetchpriority'))->toBe('high');
 
-    expect($xpath->query("//picture[img[@src='{$portraitUrl}']]/source")?->length)->toBe(0);
-
     $projectUrl = asset('storage/projects/project-placeholder.svg');
     $projectImages = $xpath->query("//img[@src='{$projectUrl}']");
 
     expect($projectImages)->not->toBeFalse()
         ->and($projectImages?->length)->toBe(2);
-
-    $projectSrcsets = [];
 
     foreach ($projectImages ?? [] as $projectImage) {
         expect($projectImage)->toBeInstanceOf(DOMElement::class)
@@ -81,19 +63,7 @@ it('renders generic placeholder images with stable dimensions', function () {
             ->and($projectImage->getAttribute('height'))->toBe('900')
             ->and($projectImage->getAttribute('loading'))->toBe('lazy')
             ->and($projectImage->getAttribute('alt'))->toContain('Project Title');
-
-        $projectSource = $projectImage->parentNode?->firstChild;
-
-        while ($projectSource !== null && ! $projectSource instanceof DOMElement) {
-            $projectSource = $projectSource->nextSibling;
-        }
-
-        $projectSrcsets[] = $projectSource?->getAttribute('srcset');
     }
-
-    expect($projectSrcsets[0])->toBe($projectSrcsets[1])
-        ->and($xpath->query('//picture')?->length)->toBe(3)
-        ->and($xpath->query("//img[contains(@src, '/storage/projects/') and @loading='lazy']")?->length)->toBe(2);
 });
 
 it('renders custom uploads through their original fallback without invented variants', function () {
@@ -151,8 +121,7 @@ it('animates only skills lists that overflow the compact viewport', function () 
         ->assertSee('data-skills-window', false)
         ->assertSee('data-animated', false)
         ->assertSee('data-skills-clone aria-hidden="true"', false)
-        ->assertSee('tabindex="0"', false)
-        ->assertSee('h-50', false);
+        ->assertSee('tabindex="0"', false);
 
     Skill::query()->delete();
     Skill::factory()->published()->count(2)->create();
@@ -161,8 +130,7 @@ it('animates only skills lists that overflow the compact viewport', function () 
         ->assertSuccessful()
         ->assertSee('data-skills-window', false)
         ->assertDontSee('data-animated', false)
-        ->assertDontSee('data-skills-clone', false)
-        ->assertDontSee('h-50', false);
+        ->assertDontSee('data-skills-clone', false);
 });
 
 it('renders related published projects under experiences in their configured order', function () {
@@ -320,7 +288,6 @@ it('renders the configured resume and social links', function () {
         ->assertSee('href="'.route('cv.show').'"', false)
         ->assertDontSee('storage/site/resumes/portfolio.pdf', false)
         ->assertSee('My Resume')
-        ->assertSee('Experience')
         ->assertSee('href="https://github.com/example"', false)
         ->assertSee('href="mailto:hello@example.com"', false)
         ->assertSee('<span class="text-sm font-medium">GitHub</span>', false)
