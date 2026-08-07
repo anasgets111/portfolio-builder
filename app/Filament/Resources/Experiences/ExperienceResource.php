@@ -18,7 +18,7 @@ class ExperienceResource extends Resource
 {
     protected static ?string $model = Experience::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBriefcase;
 
     protected static ?string $recordTitleAttribute = 'company';
 
