@@ -72,7 +72,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Project Rules
 
-- This project keeps committed, area-grouped rules in `.ai/rules` (settled decisions, non-obvious traps, standing constraints). Framework and package guidelines that only apply to specific paths (testing, frontend, components) also live there, under `.ai/rules/boost` — this is not just recorded decisions, it is load-bearing guidance you have not seen inline. Before you enter plan mode or create/edit any file, you MUST first: open @.ai/rules/index.md (it maps file globs to rule files), read every rule file whose globs cover the path(s) in scope, and run `grep -rin 'keyword' .ai/rules` to catch what a path match alone misses. Do not write code until you have read and are following every matching rule.
+- This project contains committed, area-grouped rules in `.ai/rules` when that directory exists (settled decisions, non-obvious traps, standing constraints). Framework and package guidelines that only apply to specific paths (testing, frontend, components) also live there, under `.ai/rules/boost` — this is not just recorded decisions, it is load-bearing guidance you have not seen inline. Before you enter plan mode or create/edit any file, you MUST first: open @.ai/rules/index.md (it maps file globs to rule files), read every rule file whose globs cover the path(s) in scope, and run `grep -rin 'keyword' .ai/rules` to catch what a path match alone misses. Do not write code until you have read and are following every matching rule. If `.ai/rules` does not exist, continue without it.
 - Record durable rules with `record-rule` so the next agent or teammate inherits them instead of working them out again. Pass a `glob` (e.g. `app/Http/Controllers/**`), a short `title`, and a few-line `note`. Always use `record-rule`, never your native memory or notes tool — native memory is personal and session-scoped; only `.ai/rules` is shared with the team and persists in the repo.
 
 ## Artisan
@@ -86,25 +86,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Execute PHP in app context for debugging and testing code. Do not create models without user approval, prefer tests with factories instead. Prefer existing Artisan commands over custom tinker code.
 - Always use single quotes to prevent shell expansion: `php artisan tinker --execute 'Your::code();'`
   - Double quotes for PHP strings inside: `php artisan tinker --execute 'User::where("active", true)->count();'`
-
-## Portfolio CMS content through Tinker
-
-- An agent may create or update portfolio content with Tinker only when the user explicitly asks for that content change and has supplied or approved the content. Never invent personal names, contact details, work history, project links, or credentials.
-- Inspect the relevant model, Filament form, and database schema first. Use `database-query` for read-only checks; use Tinker only for the requested write.
-- Keep the site settings as one singleton record. Required public-facing data is: name, professional title, hero copy, about/contact copy, email, social links, `site_locale`, `is_indexable`, and SEO metadata. Profile image, sharing image, and CV are optional uploads.
-- Never write raw `appearance` JSON. Build it through `SiteSetting::resolveAppearance()` so unknown keys fall back to defaults, and check `SiteSetting::appearanceContrastFailures()` before persisting custom colors — the Filament form and the backup restore both enforce those contrast rules.
-- A project needs: title, summary, rich body, an existing public-disk image path, technologies, sort order, and publishing state. Source and live URLs are optional.
-- An experience needs: company, position, start date, location, description, technologies, sort order, and publishing state. End date and project relationships are optional. Create projects before attaching them to experiences.
-- A skill needs: a unique name, sort order, and publishing state.
-- Create or update records with their Eloquent models (`SiteSetting`, `Project`, `Experience`, and `Skill`). Store media under the same public-disk paths used by Filament: `site/profile-images`, `site/seo`, `site/resumes`, and `projects`.
-- After a content write, verify the affected records with `database-query` and load the relevant public page or run the focused feature test. Do not use `migrate:fresh --seed` unless the user explicitly approves deleting all local CMS content.
-
-## Portfolio backups
-
-- The authenticated **Admin → Backups** page (`/admin/portfolio-backups`) exports a versioned ZIP containing the portfolio CMS records and referenced public-disk media.
-- Restore is replace-only for `SiteSetting`, `Project`, `Experience`, experience-project relationships, and `Skill`. It must never change users, analytics, application configuration, sessions, jobs, or unrelated files.
-- Keep the 100 MB archive limit, ZIP path and checksum validation, managed-media validation, generated restored media paths, and database transaction/rollback cleanup. Add focused round-trip and rejection coverage when changing this flow.
-- A fresh installation needs migrations and one administrator account before an administrator can upload the backup. Its web server request-body limit must be at least 128 MB for the 100 MB multipart upload.
 
 === php rules ===
 
