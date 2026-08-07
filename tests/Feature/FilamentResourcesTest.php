@@ -15,6 +15,7 @@ use App\Models\Skill;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\TagsInput;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -380,8 +381,11 @@ it('replaces the configured CV while retaining the confirmed previous file', fun
         ->toStartWith('site/resumes/')
         ->toEndWith('.pdf');
 
-    Storage::disk('public')->assertExists($storedResume);
-    Storage::disk('public')->assertExists($previousResume);
+    /** @var FilesystemAdapter $publicDisk */
+    $publicDisk = Storage::disk('public');
+
+    $publicDisk->assertExists($storedResume);
+    $publicDisk->assertExists($previousResume);
 });
 
 it('rejects invalid CV file types and oversized PDFs', function () {

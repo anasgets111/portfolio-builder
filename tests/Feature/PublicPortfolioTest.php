@@ -99,6 +99,7 @@ it('renders generic placeholder images with stable dimensions', function () {
     $xpath = new DOMXPath($document);
 
     $portraitUrl = asset('storage/site/profile-images/profile-placeholder.svg');
+    /** @var DOMElement|null $portrait */
     $portrait = $xpath->query("//img[@src='{$portraitUrl}']")?->item(0);
 
     expect($portrait)->toBeInstanceOf(DOMElement::class)
@@ -114,6 +115,7 @@ it('renders generic placeholder images with stable dimensions', function () {
         ->and($projectImages?->length)->toBe(2);
 
     foreach ($projectImages ?? [] as $projectImage) {
+        /** @var DOMElement $projectImage */
         expect($projectImage)->toBeInstanceOf(DOMElement::class)
             ->and($projectImage->getAttribute('width'))->toBe('1600')
             ->and($projectImage->getAttribute('height'))->toBe('900')
