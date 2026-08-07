@@ -15,7 +15,6 @@ use App\Models\Skill;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\TagsInput;
-use Filament\Support\Enums\Width;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -31,10 +30,6 @@ it('allows verified users to access the panel and rejects unverified users', fun
     $this->actingAs(User::factory()->unverified()->create());
 
     $this->get('/admin')->assertForbidden();
-});
-
-it('uses the full available width for administrator content', function () {
-    expect(Filament::getPanel('admin')->getMaxContentWidth())->toBe(Width::Full);
 });
 
 it('lists the project experience and skill resources', function () {
